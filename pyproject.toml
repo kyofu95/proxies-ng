@@ -27,6 +27,16 @@ pytest-cov = "^6.0.0"
 mypy = "^1.15.0"
 ruff = "^0.9.9"
 
+[tool.pytest.ini_options]
+pythonpath = [
+    "."
+]
+testpaths = [
+    "tests"
+]
+
+asyncio_default_fixture_loop_scope = "session"
+
 [tool.mypy]
 disallow_untyped_calls = true
 disallow_untyped_defs = true
