@@ -123,8 +123,10 @@ class Proxy(Base):
     geo_address: Mapped[Address] = relationship(
         back_populates="proxy",
         cascade="all, delete-orphan",
+        lazy="joined",
     )
     health: Mapped[Health] = relationship(
         back_populates="proxy",
         cascade="all, delete-orphan",
+        lazy="joined",
     )
