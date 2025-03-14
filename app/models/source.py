@@ -52,7 +52,7 @@ class Health(Base):
         onupdate=datetime.now(timezone.utc),
     )
 
-    source_id: Mapped[UUID] = mapped_column(ForeignKey("proxies.id"))
+    source_id: Mapped[UUID] = mapped_column(ForeignKey("sources.id"))
     source: Mapped[Source] = relationship(back_populates="health", single_parent=True)
 
 
