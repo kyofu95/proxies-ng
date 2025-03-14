@@ -31,7 +31,7 @@ class Protocol(StrEnum):
     SOCKS5 = "SOCKS5"
 
 
-class Address(Base):
+class ProxyAddress(Base):
     """
     Represents the geographical address associated with a proxy.
 
@@ -62,7 +62,7 @@ class Address(Base):
     )
 
 
-class Health(Base):
+class ProxyHealth(Base):
     """
     Tracks the connection health of a proxy.
 
@@ -104,8 +104,8 @@ class Proxy(Base):
         protocol (Protocol): Communication protocol used by the proxy.
         login (str | None): Optional login credential for the proxy.
         password (str | None): Optional password credential for the proxy.
-        geo_address (Address): Relationship to the Address model.
-        health (Health): Relationship to the Health model.
+        geo_address (ProxyAddress): Relationship to the ProxyAddress model.
+        health (ProxyHealth): Relationship to the ProxyHealth model.
     """
 
     __tablename__ = "proxies"
@@ -120,12 +120,12 @@ class Proxy(Base):
     login: Mapped[str | None]
     password: Mapped[str | None]
 
-    geo_address: Mapped[Address] = relationship(
+    geo_address: Mapped[ProxyAddress] = relationship(
         back_populates="proxy",
         cascade="all, delete-orphan",
         lazy="joined",
     )
-    health: Mapped[Health] = relationship(
+    health: Mapped[ProxyHealth] = relationship(
         back_populates="proxy",
         cascade="all, delete-orphan",
         lazy="joined",

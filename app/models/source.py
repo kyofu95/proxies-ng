@@ -24,7 +24,7 @@ class SourceType(IntEnum):
     Text = 1
 
 
-class Health(Base):
+class SourceHealth(Base):
     """
     Tracks the connection health of a source.
 
@@ -39,7 +39,7 @@ class Health(Base):
     __tablename__ = "sources_health"
     __table_args__ = (
         UniqueConstraint(
-            "proxy_id",
+            "source_id",
         ),  # sqlalchemy recommends to use constraint on fk in one-to-one
     )
 
@@ -65,6 +65,7 @@ class Source(Base):
         uri (str): The URI where the source data can be accessed.
         uri_predefined_type (Protocol | None): Optional predefined protocol type for the URI.
         resource (Resource): The type of resource provided by the source.
+        health (SourceHealth): Relationship to the SourceHealth model.
     """
 
     __tablename__ = "sources"
@@ -79,9 +80,8 @@ class Source(Base):
         SA_Enum(SourceType, values_callable=lambda obj: [e.name for e in obj]),
     )
 
-    health: Mapped[Health | None] = relationship(
+    health: Mapped[SourceHealth | None] = relationship(
         back_populates="source",
-        default=None,
         cascade="all, delete-orphan",
         lazy="joined",
     )
