@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from enum import StrEnum
+from ipaddress import IPv4Address, IPv6Address
 from uuid import UUID
 
 from sqlalchemy import DateTime as SA_DateTime
@@ -98,7 +99,7 @@ class Proxy(Base):
     Represents a proxy and its associated metadata.
 
     Attributes:
-        address (INET): IP address of the proxy.
+        address (IPv4Address | IPv6Address): IP address of the proxy.
         port (int): Port on which the proxy is listening.
         protocol (Protocol): Communication protocol used by the proxy.
         login (str | None): Optional login credential for the proxy.
@@ -110,7 +111,7 @@ class Proxy(Base):
     __tablename__ = "proxies"
     __table_args__ = (UniqueConstraint("address", "port", "protocol"),)
 
-    address: Mapped[INET]
+    address: Mapped[IPv4Address | IPv6Address] = mapped_column(INET)
     port: Mapped[int]
     protocol: Mapped[Protocol] = mapped_column(
         SA_Enum(Protocol, values_callable=lambda obj: [e.name for e in obj]),
