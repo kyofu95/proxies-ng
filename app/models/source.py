@@ -78,3 +78,10 @@ class Source(Base):
     type: Mapped[SourceType] = mapped_column(
         SA_Enum(SourceType, values_callable=lambda obj: [e.name for e in obj]),
     )
+
+    health: Mapped[Health | None] = relationship(
+        back_populates="source",
+        default=None,
+        cascade="all, delete-orphan",
+        lazy="joined",
+    )
