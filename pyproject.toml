@@ -28,11 +28,18 @@ mypy = "^1.15.0"
 ruff = "^0.9.9"
 
 [tool.pytest.ini_options]
+addopts = [
+    "--strict-markers",
+]
 pythonpath = [
     "."
 ]
 testpaths = [
     "tests"
+]
+markers = [
+    "unit: run all unit tests",
+    "integration: run all integration tests"
 ]
 
 asyncio_default_fixture_loop_scope = "session"
