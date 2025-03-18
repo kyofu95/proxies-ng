@@ -30,8 +30,8 @@ async def test_anime_repository_basic(db_session: AsyncSession) -> None:
     proxy.address = ip_address("127.0.0.1")
     proxy.port = 8080
     proxy.protocol = Protocol.SOCKS4
-
-    proxy.geo_address = geo_address
+    proxy.geo_address = None
+    
     proxy.health = health
 
     await proxy_repo.add(proxy)
@@ -41,12 +41,15 @@ async def test_anime_repository_basic(db_session: AsyncSession) -> None:
     assert stored_proxy.id == proxy.id
 
     stored_proxy.health.total_conn_attemps = 5
+    proxy.geo_address = geo_address
 
     await proxy_repo.update(stored_proxy)
     stored_proxy = await proxy_repo.get_by_id(proxy.id)
     assert stored_proxy
     assert stored_proxy.id == proxy.id
     assert stored_proxy.health.total_conn_attemps == 5
+    assert stored_proxy.geo_address
+    assert stored_proxy.geo_address.city == geo_address.city
 
     await proxy_repo.remove(stored_proxy)
 

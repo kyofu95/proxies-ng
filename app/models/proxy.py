@@ -120,7 +120,7 @@ class Proxy(Base):
     login: Mapped[str | None]
     password: Mapped[str | None]
 
-    geo_address: Mapped[ProxyAddress] = relationship(
+    geo_address: Mapped[ProxyAddress | None] = relationship(
         back_populates="proxy",
         cascade="all, delete-orphan",
         lazy="joined",
