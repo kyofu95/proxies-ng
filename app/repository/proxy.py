@@ -1,9 +1,10 @@
 from uuid import UUID
 
+from sqlalchemy import and_, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError
-from app.models.proxy import Proxy
+from app.core.exceptions import AlreadyExistsError, NotFoundError
+from app.models.proxy import Proxy, ProxyAddress
 
 from .base import BaseRepository
 
@@ -85,3 +86,83 @@ class ProxyRepository(BaseRepository[Proxy]):
         """
         await self.session.delete(entity)
         await self.session.commit()
+
+    async def add_geo_address(
+        self,
+        geo_address: ProxyAddress,
+    ) -> ProxyAddress:
+        """
+        Add a new ProxyAddress entity to the database.
+
+        If the address already exists, an AlreadyExistsError is raised.
+
+        Args:
+            geo_address (ProxyAddress): The ProxyAddress entity to add.
+
+        Raises:
+            AlreadyExistsError: If the address already exists.
+
+        Returns:
+            ProxyAddress: The added ProxyAddress entity.
+        """
+        address = await self.get_geo_address_by_location(
+            geo_address.country, geo_address.region, geo_address.city,
+        )
+        if address:
+            raise AlreadyExistsError("Address already exists")
+
+        # insert, since it doesn't exists
+        stmt = (
+            insert(ProxyAddress)
+            .values(
+                id=geo_address.id,
+                country=geo_address.country,
+                region=geo_address.region,
+                city=geo_address.city,
+            )
+            .returning(ProxyAddress)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def get_geo_address_by_id(self, id_: UUID) -> ProxyAddress | None:
+        """
+        Retrieve a ProxyAddress by its ID.
+
+        Args:
+            id_ (UUID): The ID of the ProxyAddress entity.
+
+        Returns:
+            ProxyAddress | None: The ProxyAddress entity if found, otherwise None.
+        """
+        stmt = select(ProxyAddress).where(ProxyAddress.id == id_)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def get_geo_address_by_location(
+        self,
+        country: str,
+        region: str,
+        city: str,
+    ) -> ProxyAddress | None:
+        """
+        Retrieve a ProxyAddress by its country, region, and city.
+
+        Args:
+            country (str): The country of the ProxyAddress.
+            region (str): The region of the ProxyAddress.
+            city (str): The city of the ProxyAddress.
+
+        Returns:
+            ProxyAddress | None: The ProxyAddress entity if found, otherwise None.
+        """
+        stmt = select(ProxyAddress).where(
+            and_(
+                ProxyAddress.country == country,
+                ProxyAddress.region == region,
+                ProxyAddress.city == city,
+            ),
+        )
+
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
