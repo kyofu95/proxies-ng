@@ -39,27 +39,16 @@ class ProxyAddress(Base):
         country (str): Country where the proxy is located.
         region (str): Region or state of the proxy's location.
         city (str): City of the proxy's location.
-        proxy_id (UUID): Foreign key linking to the associated proxy.
-        proxy (Proxy): Relationship to the Proxy model.
     """
 
     __tablename__ = "proxies_address"
     __table_args__ = (
-        UniqueConstraint(
-            "proxy_id",
-        ),  # sqlalchemy recommends to use constraint on fk in one-to-one
         UniqueConstraint("country", "region", "city"),
     )
 
     country: Mapped[str]
     region: Mapped[str]
     city: Mapped[str]
-
-    proxy_id: Mapped[UUID] = mapped_column(ForeignKey("proxies.id"))
-    proxy: Mapped[Proxy] = relationship(
-        back_populates="geo_address",
-        single_parent=True,
-    )
 
 
 class ProxyHealth(Base):
@@ -70,7 +59,7 @@ class ProxyHealth(Base):
         total_conn_attempts (int): Total number of connection attempts.
         failed_conn_attempts (int): Number of failed connection attempts.
         last_tested (datetime | None): Timestamp of the last connection test.
-        proxy_id (UUID): Foreign key linking to the associated proxy.
+        proxy_id (UUID): Foreign key linking to the proxy id.
         proxy (Proxy): Relationship to the Proxy model.
     """
 
@@ -104,7 +93,8 @@ class Proxy(Base):
         protocol (Protocol): Communication protocol used by the proxy.
         login (str | None): Optional login credential for the proxy.
         password (str | None): Optional password credential for the proxy.
-        geo_address (ProxyAddress): Relationship to the ProxyAddress model.
+        geo_address_id (UUID | None) : Foreign key linking to the ProxyAddress id.
+        geo_address (ProxyAddress | None): Relationship to the ProxyAddress model.
         health (ProxyHealth): Relationship to the ProxyHealth model.
     """
 
@@ -120,9 +110,8 @@ class Proxy(Base):
     login: Mapped[str | None]
     password: Mapped[str | None]
 
+    geo_address_id: Mapped[UUID | None] = mapped_column(ForeignKey("proxies_address.id"))
     geo_address: Mapped[ProxyAddress | None] = relationship(
-        back_populates="proxy",
-        cascade="all, delete-orphan",
         lazy="joined",
     )
     health: Mapped[ProxyHealth] = relationship(
