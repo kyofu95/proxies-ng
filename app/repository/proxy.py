@@ -123,7 +123,9 @@ class ProxyRepository(BaseRepository[Proxy]):
             .returning(ProxyAddress)
         )
         result = await self.session.execute(stmt)
-        return result.scalar_one()
+        address = result.scalar_one()
+        await self.session.commit()
+        return address
 
     async def get_geo_address_by_id(self, id_: UUID) -> ProxyAddress | None:
         """
