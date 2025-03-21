@@ -37,7 +37,6 @@ class ProxyRepository(BaseRepository[Proxy]):
             Proxy: The added Proxy entity.
         """
         self.session.add(entity)
-        await self.session.commit()
         return entity
 
     async def get_by_id(self, id_: UUID) -> Proxy | None:
@@ -72,8 +71,6 @@ class ProxyRepository(BaseRepository[Proxy]):
             )
 
         await self.session.flush([entity])
-        await self.session.commit()
-        await self.session.refresh(entity)
 
         return entity
 
@@ -85,7 +82,6 @@ class ProxyRepository(BaseRepository[Proxy]):
             entity (Proxy): The Proxy entity to remove.
         """
         await self.session.delete(entity)
-        await self.session.commit()
 
     async def add_geo_address(
         self,
@@ -123,9 +119,7 @@ class ProxyRepository(BaseRepository[Proxy]):
             .returning(ProxyAddress)
         )
         result = await self.session.execute(stmt)
-        address = result.scalar_one()
-        await self.session.commit()
-        return address
+        return result.scalar_one()
 
     async def get_geo_address_by_id(self, id_: UUID) -> ProxyAddress | None:
         """

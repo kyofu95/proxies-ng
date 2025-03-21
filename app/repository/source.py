@@ -36,7 +36,6 @@ class SourceRepository(BaseRepository[Source]):
             Source: The added Source entity.
         """
         self.session.add(entity)
-        await self.session.commit()
         return entity
 
     async def get_by_id(self, id_: UUID) -> Source | None:
@@ -71,7 +70,6 @@ class SourceRepository(BaseRepository[Source]):
             )
 
         await self.session.flush([entity])
-        await self.session.commit()
         await self.session.refresh(entity)
 
         return entity
@@ -84,4 +82,3 @@ class SourceRepository(BaseRepository[Source]):
             entity (Source): The Source entity to remove.
         """
         await self.session.delete(entity)
-        await self.session.commit()
