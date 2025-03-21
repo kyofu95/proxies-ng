@@ -1,10 +1,8 @@
 from uuid import UUID, uuid4
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Protocol
 from app.models.source import Source, SourceHealth, SourceType
-from app.repository.source import SourceRepository
 
 
 class SourceService:
@@ -15,14 +13,14 @@ class SourceService:
     and deleting proxy sources using the repository pattern.
     """
 
-    def __init__(self, async_session: AsyncSession) -> None:
+    def __init__(self, uow: SQLUnitOfWork) -> None:
         """
         Initialize the SourceService with an asynchronous database session.
 
         Args:
-            async_session (AsyncSession): The async session for database interactions.
+            uow (SQLUnitOfWork): The unit-of-work instance.
         """
-        self.source_repository = SourceRepository(async_session)
+        self.uow = uow
 
     async def create(self, name: str, uri_type: Protocol | None = None) -> Source:
         """
@@ -48,7 +46,8 @@ class SourceService:
 
         source.health = source_health
 
-        return await self.source_repository.add(source)
+        async with self.uow as uow:
+            return await uow.source_repository.add(source)
 
     async def get_by_id(self, id_: UUID) -> Source | None:
         """
@@ -60,7 +59,8 @@ class SourceService:
         Returns:
             Source | None: The proxy source object if found, otherwise None.
         """
-        return await self.source_repository.get_by_id(id_)
+        async with self.uow as uow:
+            return await uow.source_repository.get_by_id(id_)
 
     async def update(self, source: Source) -> Source:
         """
@@ -72,7 +72,8 @@ class SourceService:
         Returns:
             Source: The updated proxy source object.
         """
-        return await self.source_repository.update(source)
+        async with self.uow as uow:
+            return await uow.source_repository.update(source)
 
     async def remove(self, source: Source) -> None:
         """
@@ -81,4 +82,5 @@ class SourceService:
         Args:
             source (Source): The proxy source object to be removed.
         """
-        await self.source_repository.remove(source)
+        async with self.uow as uow:
+            await uow.source_repository.remove(source)

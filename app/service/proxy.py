@@ -1,10 +1,8 @@
 from ipaddress import IPv4Address, IPv6Address
 from uuid import UUID, uuid4
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Protocol, Proxy, ProxyHealth
-from app.repository.proxy import ProxyRepository
 
 
 class ProxyService:
@@ -15,14 +13,14 @@ class ProxyService:
     and deleting proxy records using the repository pattern.
     """
 
-    def __init__(self, async_session: AsyncSession) -> None:
+    def __init__(self, uow: SQLUnitOfWork) -> None:
         """
         Initialize the ProxyService with a given async session.
 
         Args:
-            async_session (AsyncSession): The asynchronous session for database operations.
+            uow (SQLUnitOfWork): The unit-of-work instance.
         """
-        self.proxy_repository = ProxyRepository(async_session)
+        self.uow = uow
 
     async def create(
         self,
@@ -61,7 +59,8 @@ class ProxyService:
         proxy.health = proxy_health
         proxy.geo_address = None
 
-        return await self.proxy_repository.add(proxy)
+        async with self.uow as uow:
+            return await uow.proxy_repository.add(proxy)
 
     async def get_by_id(self, id_: UUID) -> Proxy | None:
         """
@@ -73,7 +72,8 @@ class ProxyService:
         Returns:
             Proxy | None: The retrieved proxy entity or None if not found.
         """
-        return await self.proxy_repository.get_by_id(id_)
+        async with self.uow as uow:
+            return await uow.proxy_repository.get_by_id(id_)
 
     async def update(self, proxy: Proxy) -> Proxy:
         """
@@ -85,7 +85,8 @@ class ProxyService:
         Returns:
             Proxy: The updated proxy entity.
         """
-        return await self.proxy_repository.update(proxy)
+        async with self.uow as uow:
+            return await uow.proxy_repository.update(proxy)
 
     async def remove(self, proxy: Proxy) -> None:
         """
@@ -94,4 +95,5 @@ class ProxyService:
         Args:
             proxy (Proxy): The proxy entity to be removed.
         """
-        await self.proxy_repository.remove(proxy)
+        async with self.uow as uow:
+            await uow.proxy_repository.remove(proxy)
