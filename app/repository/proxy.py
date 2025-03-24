@@ -4,7 +4,7 @@ from sqlalchemy import and_, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AlreadyExistsError, NotFoundError
-from app.models.proxy import Proxy, ProxyAddress
+from app.models.proxy import Protocol, Proxy, ProxyAddress, ProxyHealth
 
 from .base import BaseRepository
 
@@ -162,3 +162,28 @@ class ProxyRepository(BaseRepository[Proxy]):
 
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_proxies(self, protocol: Protocol | None = None, country: str | None = None) -> list[Proxy]:
+        """
+        Retrieve a list of proxies filtered by protocol and/or country.
+
+        Args:
+            protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
+            country (str | None, optional): The country to filter proxies by. Defaults to None.
+
+        Returns:
+            list[Proxy]: A list of Proxy entities that match the given filters.
+        """
+        stmt = select(Proxy)
+
+        if protocol:
+            stmt = stmt.where(Proxy.protocol == protocol)
+
+        if country:
+            stmt = stmt.join(ProxyAddress).where(ProxyAddress.country == country)
+
+        stmt = stmt.join(ProxyHealth).order_by(ProxyHealth.last_tested)
+
+        result = await self.session.execute(stmt)
+
+        return list(result.scalars().all())

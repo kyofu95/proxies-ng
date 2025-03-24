@@ -160,3 +160,60 @@ async def test_proxy_repository_geo_address_proxy(db_session_factory: async_sess
         stored_geo_address = await uow.proxy_repository.get_geo_address_by_id(geo_address.id)
         assert stored_geo_address
         assert stored_geo_address.country == geo_address.country
+
+@pytest.mark.integration
+@pytest.mark.asyncio(loop_scope="session")
+async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
+
+
+    async with SQLUnitOfWork(db_session_factory) as uow:
+
+        proxy = make_proxy()
+        proxy.protocol = Protocol.HTTPS
+        geo_address = ProxyAddress()
+        geo_address.id = uuid4()
+        geo_address.city = "Amsterdam"
+        geo_address.country = "Netherlands"
+        geo_address.region = "North Holland"
+        proxy.geo_address = geo_address
+
+        await uow.proxy_repository.add(proxy)
+
+        proxy = make_proxy()
+        proxy.protocol = Protocol.HTTPS
+        geo_address = ProxyAddress()
+        geo_address.id = uuid4()
+        geo_address.city = "Utrecht"
+        geo_address.country = "Netherlands"
+        geo_address.region = "Utrecht"
+        proxy.geo_address = geo_address
+
+        await uow.proxy_repository.add(proxy)
+
+        proxy = make_proxy()
+        proxy.protocol = Protocol.HTTPS
+        geo_address = ProxyAddress()
+        geo_address.id = uuid4()
+        geo_address.city = "Lyon"
+        geo_address.country = "France"
+        geo_address.region = "Auvergne-Rhone-Alpes"
+        proxy.geo_address = geo_address
+
+        await uow.proxy_repository.add(proxy)
+
+    async with SQLUnitOfWork(db_session_factory) as uow:
+
+        proxies = await uow.proxy_repository.get_proxies()
+        assert len(proxies) >= 3
+
+        proxies = await uow.proxy_repository.get_proxies(protocol=None, country="Netherlands")
+        assert len(proxies) == 2
+
+        proxies = await uow.proxy_repository.get_proxies(protocol=None, country="Germany")
+        assert len(proxies) == 0
+
+        proxies = await uow.proxy_repository.get_proxies(protocol=Protocol.HTTPS, country=None)
+        assert len(proxies) == 3
+
+        proxies = await uow.proxy_repository.get_proxies(protocol=Protocol.SOCKS5, country=None)
+        assert len(proxies) == 0
