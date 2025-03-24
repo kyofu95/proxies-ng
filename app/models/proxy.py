@@ -70,8 +70,8 @@ class ProxyHealth(Base):
         ),  # sqlalchemy recommends to use constraint on fk in one-to-one
     )
 
-    total_conn_attemps: Mapped[int]
-    failed_conn_attemps: Mapped[int]
+    total_conn_attemps: Mapped[int] = mapped_column(default=0)
+    failed_conn_attemps: Mapped[int] = mapped_column(default=0)
 
     last_tested: Mapped[datetime | None] = mapped_column(
         SA_DateTime(timezone=True),
@@ -107,8 +107,8 @@ class Proxy(Base):
         SA_Enum(Protocol, values_callable=lambda obj: [e.name for e in obj]),
     )
 
-    login: Mapped[str | None]
-    password: Mapped[str | None]
+    login: Mapped[str | None] = mapped_column(default=None)
+    password: Mapped[str | None] = mapped_column(default=None)
 
     geo_address_id: Mapped[UUID | None] = mapped_column(ForeignKey("proxies_address.id"))
     geo_address: Mapped[ProxyAddress | None] = relationship(
