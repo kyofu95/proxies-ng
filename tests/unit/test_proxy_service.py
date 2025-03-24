@@ -79,3 +79,10 @@ async def test_remove_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
     await service.remove(mock_proxy)
     
     mock_uow.proxy_repository.remove.assert_called_once_with(mock_proxy)
+
+@pytest.mark.unit
+@pytest.mark.asyncio(loop_scope="module")
+async def test_get_proxies(service: ProxyService, mock_uow: AsyncMock) -> None:
+    await service.get_proxies()
+    
+    mock_uow.proxy_repository.get_proxies.assert_called_once()

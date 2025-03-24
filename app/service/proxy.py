@@ -97,3 +97,17 @@ class ProxyService:
         """
         async with self.uow as uow:
             await uow.proxy_repository.remove(proxy)
+
+    async def get_proxies(self, protocol: Protocol | None = None, country: str | None = None) -> list[Proxy]:
+        """
+        Retrieve a list of proxies filtered by protocol and/or country.
+
+        Args:
+            protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
+            country (str | None, optional): The country to filter proxies by. Defaults to None.
+
+        Returns:
+            list[Proxy]: A list of Proxy entities that match the given filters.
+        """
+        async with self.uow as uow:
+            return await uow.proxy_repository.get_proxies(protocol=protocol, country=country)
