@@ -100,7 +100,7 @@ class ProxyService:
 
     async def get_proxies(self, protocol: Protocol | None = None, country: str | None = None) -> list[Proxy]:
         """
-        Retrieve a list of proxies filtered by protocol and/or country.
+        Retrieve a list of proxies filtered by protocol and/or country. Omits proxies without geoaddress.
 
         Args:
             protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.

@@ -201,6 +201,11 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
 
         await uow.proxy_repository.add(proxy)
 
+        proxy = make_proxy()
+        proxy.protocol = Protocol.HTTP
+
+        await uow.proxy_repository.add(proxy)
+
     async with SQLUnitOfWork(db_session_factory) as uow:
 
         proxies = await uow.proxy_repository.get_proxies()
@@ -216,4 +221,7 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
         assert len(proxies) == 3
 
         proxies = await uow.proxy_repository.get_proxies(protocol=Protocol.SOCKS5, country=None)
+        assert len(proxies) == 0
+
+        proxies = await uow.proxy_repository.get_proxies(protocol=Protocol.HTTP, country=None)
         assert len(proxies) == 0

@@ -165,7 +165,7 @@ class ProxyRepository(BaseRepository[Proxy]):
 
     async def get_proxies(self, protocol: Protocol | None = None, country: str | None = None) -> list[Proxy]:
         """
-        Retrieve a list of proxies filtered by protocol and/or country.
+        Retrieve a list of proxies filtered by protocol and/or country. Omits proxies without geoaddress.
 
         Args:
             protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
@@ -174,7 +174,7 @@ class ProxyRepository(BaseRepository[Proxy]):
         Returns:
             list[Proxy]: A list of Proxy entities that match the given filters.
         """
-        stmt = select(Proxy)
+        stmt = select(Proxy).where(Proxy.geo_address_id.isnot(None))
 
         if protocol:
             stmt = stmt.where(Proxy.protocol == protocol)
