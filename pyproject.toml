@@ -122,6 +122,7 @@ ignore = [
     "D404", # docstring-starts-with-this
     "D413", # missing-blank-line-after-last-section
     "EM101", # Exception must not use a string literal, assign to variable first
+    "PGH003", # Ruff and mypy, Use specific rule codes when ignoring type issues
     "TRY003", # Avoid specifying long messages outside the exception class
     "UP017" # datetime-timezone-utc
 ]
