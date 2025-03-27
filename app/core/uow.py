@@ -18,15 +18,19 @@ class SQLUnitOfWork:
     committing changes if successful and rolling back in case of errors.
     """
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession], *, raise_exc: bool = True) -> None:
         """
         Initialize the Unit of Work with a session factory.
 
         Args:
             session_factory (async_sessionmaker[AsyncSession]): The session factory to create new sessions.
+            raise_exc (bool, optional): Determines whether exceptions should be raised.
+                - If True (default), exceptions will be propagated, which is useful for FastAPI.
+                - If False, exceptions will be logged instead of raised, making it suitable for Celery tasks.
         """
         self.session_factory = session_factory
         self.session: AsyncSession | None = None
+        self.raise_exception = raise_exc # Exception handling flag
 
     async def __aenter__(self) -> Self:
         """
@@ -80,7 +84,9 @@ class SQLUnitOfWork:
 
         # but process sqlalchemy exceptions
         if isinstance(exc_value, SQLAlchemyError):
-            raise DatabaseError from exc_value
+            if self.raise_exception:
+                raise DatabaseError from exc_value
+            # TODO(sny): log exception
 
         return False
 
