@@ -51,6 +51,20 @@ class SourceRepository(BaseRepository[Source]):
         """
         return await self.session.get(Source, id_)
 
+    async def get_by_name(self, name: str) -> Source | None:
+        """
+        Retrieve a Source entity by its name.
+
+        Args:
+            name (str): The name of the Source entity.
+
+        Returns:
+            Source | None: The Source entity if found, otherwise None.
+        """
+        stmt = select(Source).where(Source.name == name)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def get_all(self) -> list[Source]:
         """
         Retrieve all Source entities from the database.
