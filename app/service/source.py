@@ -22,12 +22,13 @@ class SourceService:
         """
         self.uow = uow
 
-    async def create(self, name: str, uri_type: Protocol | None = None) -> Source:
+    async def create(self, name: str, url: str, uri_type: Protocol | None = None) -> Source:
         """
         Create a new proxy source with the given parameters and store it in database.
 
         Args:
             name (str): The name of the proxy source.
+            url (str): The URL associated with the proxy source.
             uri_type (Protocol | None): Optional URI type (proxy protocol) for the source. Defaults to None.
 
         Returns:
@@ -36,6 +37,7 @@ class SourceService:
         source = Source()
         source.id = uuid4()
         source.name = name
+        source.uri = url
         source.uri_predefined_type = uri_type
         source.type = SourceType.Text
 

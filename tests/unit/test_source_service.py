@@ -26,16 +26,18 @@ async def service(mock_uow: AsyncMock) -> SourceService:
 async def test_create_source(service: SourceService, mock_uow: AsyncMock) -> None:
     source_id = uuid4()
     name = "Test Source"
+    uri = "http://localhost"
     uri_type = None
 
     mock_source = Source()
     mock_source.id = source_id
     mock_source.name = name
+    mock_source.uri = uri
     mock_source.uri_predefined_type = uri_type
     mock_source.type = SourceType.Text
 
     mock_uow.source_repository.add.return_value = mock_source
-    result = await service.create(name)
+    result = await service.create(name, uri)
     
     mock_uow.source_repository.add.assert_called_once()
     assert result == mock_source
