@@ -15,12 +15,12 @@ class DatabaseSettings(BaseSettings):
         port (int): The port number on which the database server is listening.
     """
 
-    driver: str = Field(alias="DATABASE_DRIVER")
-    user: str = Field(alias="DATABASE_USER")
-    password: str = Field(alias="DATABASE_PASSWORD")
-    name: str = Field(alias="DATABASE_NAME")
-    host: str = Field(alias="DATABASE_HOST")
-    port: int = Field(alias="DATABASE_PORT")
+    driver: str = Field(alias="DATABASE_DRIVER", default="postgresql+asyncpg")
+    user: str = Field(alias="DATABASE_USER", default="myuser")
+    password: str = Field(alias="DATABASE_PASSWORD", default="mypassword")
+    name: str = Field(alias="DATABASE_NAME", default="mydb")
+    host: str = Field(alias="DATABASE_HOST", default="localhost")
+    port: int = Field(alias="DATABASE_PORT", default=5432)
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -30,7 +30,7 @@ database_settings = DatabaseSettings()
 
 class CelerySettings(BaseSettings):
     """
-    Configuration settings for Celery broker connection.  
+    Configuration settings for Celery broker connection.
 
     Attributes:
         broker (str): The message broker type (e.g., "redis", "rabbitmq"). Defaults to "redis".
