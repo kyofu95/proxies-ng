@@ -53,6 +53,18 @@ async def test_get_by_id(service: SourceService, mock_uow: AsyncMock) -> None:
     mock_uow.source_repository.get_by_id.assert_called_once_with(source_id)
     assert result == mock_source
 
+@pytest.mark.asyncio
+async def test_get_by_name(service: SourceService, mock_uow: AsyncMock) -> None:
+    source_name = "name"
+    mock_source = Source()
+    mock_source.id = source_name
+
+    mock_uow.source_repository.get_by_name.return_value = mock_source
+    result = await service.get_by_name(source_name)
+    
+    mock_uow.source_repository.get_by_name.assert_called_once_with(source_name)
+    assert result == mock_source
+
 
 @pytest.mark.asyncio
 async def test_update_source(service: SourceService, mock_uow: AsyncMock) -> None:

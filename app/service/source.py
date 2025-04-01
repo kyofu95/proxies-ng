@@ -62,6 +62,19 @@ class SourceService:
         async with self.uow as uow:
             return await uow.source_repository.get_by_id(id_)
 
+    async def get_by_name(self, name: str) -> Source | None:
+        """
+        Retrieve a proxy source by its name.
+
+        Args:
+            name (str): The name of the proxy source.
+
+        Returns:
+            Source | None: The proxy source object if found, otherwise None.
+        """
+        async with self.uow as uow:
+            return await uow.source_repository.get_by_name(name)
+
     async def update(self, source: Source) -> Source:
         """
         Update an existing proxy source in the database.
