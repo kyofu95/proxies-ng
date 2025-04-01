@@ -74,7 +74,7 @@ class SourceRepository(BaseRepository[Source]):
         """
         stmt = select(Source)
         result = await self.session.execute(stmt)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def update(self, entity: Source) -> Source:
         """
