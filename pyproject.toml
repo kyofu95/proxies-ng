@@ -18,6 +18,7 @@ dependencies = [
     "aiohttp[speedups] (>=3.11.14,<4.0.0)",
     "geoip2 (>=5.0.1,<6.0.0)",
     "celery[redis] (>=5.4.0,<6.0.0)",
+    "celery-types (>=0.23.0); python_version >= '3.12' and python_version < '4.0'"
 ]
 
 
