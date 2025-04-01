@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
@@ -49,6 +50,17 @@ class SourceRepository(BaseRepository[Source]):
             Source | None: The Source entity if found, otherwise None.
         """
         return await self.session.get(Source, id_)
+
+    async def get_all(self) -> list[Source]:
+        """
+        Retrieve all Source entities from the database.
+
+        Returns:
+            list[Source]: A list of all Source entities.
+        """
+        stmt = select(Source)
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
 
     async def update(self, entity: Source) -> Source:
         """

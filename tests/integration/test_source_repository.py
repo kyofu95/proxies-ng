@@ -35,6 +35,11 @@ async def test_source_repository_add(db_session_factory: async_sessionmaker[Asyn
         assert stored_source
         assert stored_source.name == source.name
 
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        stored_sources = await uow.source_repository.get_all()
+        assert stored_sources
+        assert len(stored_sources) == 1
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_source_repository_update(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
