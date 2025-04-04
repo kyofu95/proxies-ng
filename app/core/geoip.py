@@ -1,22 +1,8 @@
 from ipaddress import IPv4Address, IPv6Address
-from typing import NamedTuple
 
 from geoip2.database import Reader
 
-
-class Location(NamedTuple):
-    """
-    Represents a geographic location.
-
-    Attributes:
-        city (str): The name of the city.
-        region (str): The name of the region or state.
-        country (str): The name of the country.
-    """
-
-    city: str
-    region: str
-    country: str
+from app.models.proxy import Location
 
 
 class GeoIP:

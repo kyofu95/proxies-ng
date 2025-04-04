@@ -2,7 +2,7 @@ from ipaddress import IPv4Address, IPv6Address
 from uuid import UUID, uuid4
 
 from app.core.uow import SQLUnitOfWork
-from app.models.proxy import Protocol, Proxy, ProxyHealth
+from app.models.proxy import Location, Protocol, Proxy, ProxyAddress, ProxyHealth
 
 
 class ProxyService:
@@ -29,6 +29,7 @@ class ProxyService:
         protocol: Protocol,
         login: str | None = None,
         password: str | None = None,
+        location: Location | None = None,
     ) -> Proxy:
         """
         Create and persist a new proxy entity.
@@ -57,9 +58,23 @@ class ProxyService:
         proxy_health.failed_conn_attemps = 0
 
         proxy.health = proxy_health
-        proxy.geo_address = None
 
         async with self.uow as uow:
+            if location:
+                geo_address = await uow.proxy_repository.get_geo_address_by_location(
+                    location.country, location.region, location.city,
+                )
+                if not geo_address:
+                    geo_address = ProxyAddress()
+                    geo_address.id = uuid4()
+                    geo_address.city = location.city
+                    geo_address.region = location.region
+                    geo_address.country = location.country
+                    geo_address = await uow.proxy_repository.add_geo_address(geo_address)
+                proxy.geo_address = geo_address
+            else:
+                proxy.geo_address = None
+
             return await uow.proxy_repository.add(proxy)
 
     async def get_by_id(self, id_: UUID) -> Proxy | None:

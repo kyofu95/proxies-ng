@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from enum import StrEnum
 from ipaddress import IPv4Address, IPv6Address
+from typing import NamedTuple
 from uuid import UUID
 
 from sqlalchemy import DateTime as SA_DateTime
@@ -12,6 +13,21 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+
+
+class Location(NamedTuple):
+    """
+    Represents a geographic location.
+
+    Attributes:
+        city (str): The name of the city.
+        region (str): The name of the region or state.
+        country (str): The name of the country.
+    """
+
+    city: str
+    region: str
+    country: str
 
 
 class Protocol(StrEnum):
@@ -42,9 +58,7 @@ class ProxyAddress(Base):
     """
 
     __tablename__ = "proxies_address"
-    __table_args__ = (
-        UniqueConstraint("country", "region", "city"),
-    )
+    __table_args__ = (UniqueConstraint("country", "region", "city"),)
 
     country: Mapped[str]
     region: Mapped[str]

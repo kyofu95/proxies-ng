@@ -7,7 +7,7 @@ import pytest_asyncio
 
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Protocol, Proxy
-from app.service.proxy import ProxyService
+from app.service.proxy import Location, ProxyService
 
 
 @pytest_asyncio.fixture(loop_scope="module", scope="module")
@@ -31,15 +31,17 @@ async def test_create_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
     address = IPv4Address("192.168.1.1")
     port = 8080
     protocol = Protocol.HTTP
+    location = Location(city="A", region="B", country="C")
 
     mock_proxy = Proxy()
     mock_proxy.id = proxy_id
     mock_proxy.address = address
     mock_proxy.port = port
     mock_proxy.protocol = protocol
+    mock_proxy.address = location
 
     mock_uow.proxy_repository.add.return_value = mock_proxy
-    result = await service.create(address, port, protocol)
+    result = await service.create(address, port, protocol, location=location)
     
     mock_uow.proxy_repository.add.assert_called_once()
     assert result == mock_proxy
