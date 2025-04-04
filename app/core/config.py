@@ -1,4 +1,6 @@
-from pydantic import Field
+from typing import Any
+
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,27 +30,86 @@ class DatabaseSettings(BaseSettings):
 database_settings = DatabaseSettings()
 
 
-class CelerySettings(BaseSettings):
+class RedisSettings(BaseSettings):
     """
-    Configuration settings for Celery broker connection.
+    Configuration settings for Redis, loaded from environment variables.
 
     Attributes:
-        broker (str): The message broker type (e.g., "redis", "rabbitmq"). Defaults to "redis".
-        user (str): The username for broker authentication. Defaults to an empty string.
-        password (str): The password for broker authentication. Defaults to an empty string.
-        host (str): The hostname or IP address of the broker. Defaults to "localhost".
-        port (int): The port number of the broker. Defaults to 6379.
-        name (str): The database name for the broker (if applicable). Defaults to "0".
+        host (str): Redis server hostname or IP address.
+        port (int): Redis server port.
+        user (str): Redis username, if authentication is required.
+        password (str): Redis password, if authentication is required.
+    """
+
+    host: str = Field(alias="REDIS_HOST", default="localhost")
+    port: int = Field(alias="REDIS_PORT", default=6379)
+    user: str = Field(alias="REDIS_USER", default="")
+    password: str = Field(alias="REDIS_PASSWORD", default="")
+
+
+redis_settings = RedisSettings()
+
+
+class CelerySettings(RedisSettings):
+    """
+    Configuration settings for Celery broker, optionally using Redis settings as fallback.
+
+    Attributes:
+        broker (str): The broker type (e.g., "redis").
+        host (str): The broker's hostname or IP address. Defaults to Redis host if not explicitly set.
+        port (int): The broker's port number. Defaults to Redis port if not explicitly set.
+        user (str): Username for broker authentication. Defaults to Redis user if not explicitly set.
+        password (str): Password for broker authentication. Defaults to Redis password if not explicitly set.
+        name (str): Broker database name or index (e.g., for Redis).
     """
 
     broker: str = Field(alias="CELERY_BROKER_DRIVER", default="redis")
-    user: str = Field(alias="CELERY_BROKER_USER", default="")
-    password: str = Field(alias="CELERY_BROKER_PASSWORD", default="")
-    host: str = Field(alias="CELERY_BROKER_HOST", default="localhost")
-    port: int = Field(alias="CELERY_BROKER_PORT", default=6379)
-    name: str = Field(alias="CELERY_BROKER_NAME", default="0", description="database name")
+    host: str = Field(
+        alias="CELERY_BROKER_HOST", description="The broker host. Defaults to REDIS_HOST if not explicitly set.",
+    )
+    port: int = Field(
+        alias="CELERY_BROKER_PORT", description="The broker port. Defaults to REDIS_PORT if not explicitly set.",
+    )
+    user: str = Field(
+        alias="CELERY_BROKER_USER", description="The broker user. Defaults to REDIS_USER if not explicitly set.",
+    )
+    password: str = Field(
+        alias="CELERY_BROKER_PASSWORD",
+        description="The broker password. Defaults to REDIS_PASSWORD if not explicitly set.",
+    )
+    name: str = Field(
+        alias="CELERY_BROKER_NAME",
+        default="0",
+        description="Database name or Redis DB index for the broker",
+    )
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @model_validator(mode="before")
+    @classmethod
+    def fill_from_redis(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """
+        Fill in missing Celery broker configuration from Redis settings, if available.
+
+        Args:
+            values (dict[str, Any]): The initial values from environment variables or defaults.
+
+        Returns:
+            dict[str, Any]: The possibly updated values with fallback from Redis settings.
+        """
+        if "CELERY_BROKER_HOST" not in values:
+            redis_host = values.get("REDIS_HOST", redis_settings.host)
+            values["CELERY_BROKER_HOST"] = redis_host
+        if "CELERY_BROKER_PORT" not in values:
+            redis_port = values.get("REDIS_PORT", redis_settings.port)
+            values["CELERY_BROKER_PORT"] = redis_port
+        if "CELERY_BROKER_USER" not in values:
+            redis_user = values.get("REDIS_USER", redis_settings.user)
+            values["CELERY_BROKER_USER"] = redis_user
+        if "CELERY_BROKER_PASSWORD" not in values:
+            redis_password = values.get("REDIS_PASSWORD", redis_settings.password)
+            values["CELERY_BROKER_PASSWORD"] = redis_password
+        return values
 
 
 celery_settings = CelerySettings()
