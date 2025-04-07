@@ -6,7 +6,6 @@ Before running the tests, you need to download the GeoIP database.
   ```sh
   mkdir geoip
   ```
-
 2. Download the GeoIP database using curl:
   ```sh
   curl -LO --output-dir geoip/ https://git.io/GeoLite2-City.mmdb
