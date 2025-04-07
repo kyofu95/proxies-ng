@@ -3,14 +3,14 @@
 Before running the tests, you need to download the GeoIP database.
 
 1. Create the `geoip` directory:
-```sh
-mkdir geoip
-```
+  ```sh
+  mkdir geoip
+  ```
 
 2. Download the GeoIP database using curl:
-```sh
-curl -LO --output-dir geoip/ https://git.io/GeoLite2-City.mmdb
-```
+  ```sh
+  curl -LO --output-dir geoip/ https://git.io/GeoLite2-City.mmdb
+  ```
 
 ## Testing
 
