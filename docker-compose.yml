@@ -4,7 +4,7 @@ services:
     container_name: fastapi_app
     environment:
       DATABASE_HOST: postgres
-      CELERY_BROKER_HOST: redis
+      REDIS_HOST: redis
     ports:
       - "8000:8000"
     depends_on:
@@ -48,9 +48,11 @@ services:
     container_name: celery_worker
     entrypoint: ""
     command: celery -A app.tasks.celery:celery_app worker --loglevel=DEBUG
+    volumes:
+      - ./geoip:/fastapi_project/geoip
     environment:
       DATABASE_HOST: postgres
-      CELERY_BROKER_HOST: redis
+      REDIS_HOST: redis
     depends_on:
       - redis
     networks:
@@ -62,7 +64,7 @@ services:
     entrypoint: ""
     command: celery -A app.tasks.celery:celery_app beat --loglevel=DEBUG
     environment:
-      CELERY_BROKER_HOST: redis
+      REDIS_HOST: redis
     depends_on:
       - redis
     networks:
