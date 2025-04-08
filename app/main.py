@@ -1,7 +1,13 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
+from app.views.pages import router as pages_router
+
+BASE_PATH = Path(__file__).resolve().parent
 
 
 @asynccontextmanager
@@ -39,6 +45,14 @@ def create_app() -> FastAPI:
         redoc_url=None,
         lifespan=app_lifespan,
     )
+
+    api.mount(
+        "/static",
+        StaticFiles(directory=str(BASE_PATH / "static")),
+        name="static",
+    )
+
+    api.include_router(pages_router)
 
     return api
 
