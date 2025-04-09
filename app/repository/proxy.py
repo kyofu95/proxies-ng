@@ -102,7 +102,9 @@ class ProxyRepository(BaseRepository[Proxy]):
             ProxyAddress: The added ProxyAddress entity.
         """
         address = await self.get_geo_address_by_location(
-            geo_address.country, geo_address.region, geo_address.city,
+            geo_address.country,
+            geo_address.region,
+            geo_address.city,
         )
         if address:
             raise AlreadyExistsError("Address already exists")
@@ -163,13 +165,20 @@ class ProxyRepository(BaseRepository[Proxy]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_proxies(self, protocol: Protocol | None = None, country: str | None = None) -> list[Proxy]:
+    async def get_proxies(
+        self,
+        protocol: Protocol | None = None,
+        country: str | None = None,
+        *,
+        only_checked: bool = False,
+    ) -> list[Proxy]:
         """
         Retrieve a list of proxies filtered by protocol and/or country. Omits proxies without geoaddress.
 
         Args:
             protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
             country (str | None, optional): The country to filter proxies by. Defaults to None.
+            only_checked (bool): Get only verified proxies. Defaults no False.
 
         Returns:
             list[Proxy]: A list of Proxy entities that match the given filters.
@@ -182,7 +191,10 @@ class ProxyRepository(BaseRepository[Proxy]):
         if country:
             stmt = stmt.join(ProxyAddress).where(ProxyAddress.country == country)
 
-        stmt = stmt.join(ProxyHealth).order_by(ProxyHealth.last_tested)
+        stmt = stmt.join(ProxyHealth)
+        if only_checked:
+            stmt = stmt.where(and_(ProxyHealth.last_tested.is_not(None), ProxyHealth.total_conn_attemps > 0))
+        stmt = stmt.order_by(ProxyHealth.last_tested)
 
         result = await self.session.execute(stmt)
 

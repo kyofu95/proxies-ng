@@ -225,3 +225,6 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
 
         proxies = await uow.proxy_repository.get_proxies(protocol=Protocol.HTTP, country=None)
         assert len(proxies) == 0
+
+        proxies = await uow.proxy_repository.get_proxies(only_checked=True)
+        assert len(proxies) == 0
