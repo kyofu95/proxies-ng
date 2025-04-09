@@ -87,6 +87,8 @@ class ProxyHealth(Base):
     total_conn_attemps: Mapped[int] = mapped_column(default=0)
     failed_conn_attemps: Mapped[int] = mapped_column(default=0)
 
+    latency: Mapped[int] = mapped_column(default=0)
+
     last_tested: Mapped[datetime | None] = mapped_column(SA_DateTime(timezone=True))
 
     proxy_id: Mapped[UUID] = mapped_column(ForeignKey("proxies.id"))
