@@ -62,7 +62,9 @@ class ProxyService:
         async with self.uow as uow:
             if location:
                 geo_address = await uow.proxy_repository.get_geo_address_by_location(
-                    location.country, location.region, location.city,
+                    location.country,
+                    location.region,
+                    location.city,
                 )
                 if not geo_address:
                     geo_address = ProxyAddress()
@@ -113,16 +115,27 @@ class ProxyService:
         async with self.uow as uow:
             await uow.proxy_repository.remove(proxy)
 
-    async def get_proxies(self, protocol: Protocol | None = None, country: str | None = None) -> list[Proxy]:
+    async def get_proxies(
+        self,
+        protocol: Protocol | None = None,
+        country: str | None = None,
+        *,
+        only_checked: bool = False,
+    ) -> list[Proxy]:
         """
         Retrieve a list of proxies filtered by protocol and/or country. Omits proxies without geoaddress.
 
         Args:
             protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
             country (str | None, optional): The country to filter proxies by. Defaults to None.
+            only_checked (bool): Get only verified proxies. Defaults no False.
 
         Returns:
             list[Proxy]: A list of Proxy entities that match the given filters.
         """
         async with self.uow as uow:
-            return await uow.proxy_repository.get_proxies(protocol=protocol, country=country)
+            return await uow.proxy_repository.get_proxies(
+                protocol=protocol,
+                country=country,
+                only_checked=only_checked,
+            )
