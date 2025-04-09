@@ -172,19 +172,33 @@ class ProxyRepository(BaseRepository[Proxy]):
         *,
         only_checked: bool = False,
         limit: int | None = None,
+        sort_by_unchecked: bool = False,
     ) -> list[Proxy]:
         """
-        Retrieve a list of proxies filtered by protocol and/or country. Omits proxies without geoaddress.
+        Retrieve a list of Proxy entities with optional filtering and sorting.
+
+        By default, only proxies with a non-null geo_address are returned.
+        You can further filter by protocol and country, and limit results.
+        If 'only_checked' is True, returns only proxies that have been tested at least once.
+        If 'sort_by_unchecked' is True, returns proxies sorted by null 'last_tested' first.
 
         Args:
-            protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
-            country (str | None, optional): The country to filter proxies by. Defaults to None.
-            only_checked (bool): Get only verified proxies. Defaults no False.
-            limit (int | None, optional): Limits amount of queried proxies. Defaults to None.
+            protocol (Protocol | None): Optional protocol to filter proxies by.
+            country (str | None): Optional country to filter proxies by (requires associated geo address).
+            only_checked (bool): If True, include only proxies that were tested. Defaults to False.
+            limit (int | None): Optional limit on the number of proxies returned.
+            sort_by_unchecked (bool): If True, sort proxies with no 'last_tested' first.
+                Cannot be True when 'only_checked' is also True.
+
+        Raises:
+            ValueError: If both 'only_checked' and 'sort_by_unchecked' are True.
 
         Returns:
-            list[Proxy]: A list of Proxy entities that match the given filters.
+            list[Proxy]: A list of Proxy entities matching the provided filters.
         """
+        if only_checked and sort_by_unchecked:
+            raise ValueError("Cannot sort by unchecked if only_checked is True")
+
         stmt = select(Proxy).where(Proxy.geo_address_id.isnot(None))
 
         if protocol:
@@ -197,8 +211,11 @@ class ProxyRepository(BaseRepository[Proxy]):
         if only_checked:
             stmt = stmt.where(and_(ProxyHealth.last_tested.is_not(None), ProxyHealth.total_conn_attemps > 0))
 
-        # Descending order means latest proxy on the top
-        stmt = stmt.order_by(ProxyHealth.last_tested.desc())
+            # Descending order means latest proxy on the top
+            stmt = stmt.order_by(ProxyHealth.last_tested.desc())
+
+        if sort_by_unchecked:
+            stmt = stmt.order_by(ProxyHealth.last_tested.asc().nulls_first())
 
         if limit:
             stmt = stmt.limit(limit)

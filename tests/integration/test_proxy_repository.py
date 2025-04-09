@@ -208,6 +208,9 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
 
     async with SQLUnitOfWork(db_session_factory) as uow:
 
+        with pytest.raises(ValueError):
+            proxies = await uow.proxy_repository.get_proxies(only_checked=True, sort_by_unchecked=True)
+
         proxies = await uow.proxy_repository.get_proxies()
         assert len(proxies) >= 3
 
@@ -228,3 +231,12 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
 
         proxies = await uow.proxy_repository.get_proxies(only_checked=True)
         assert len(proxies) == 0
+
+        proxies = await uow.proxy_repository.get_proxies(limit=1)
+        assert len(proxies) == 1
+
+        proxies = await uow.proxy_repository.get_proxies(limit=2)
+        assert len(proxies) == 2
+
+        proxies = await uow.proxy_repository.get_proxies(sort_by_unchecked=True)
+        assert len(proxies) == 3
