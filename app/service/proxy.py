@@ -40,6 +40,7 @@ class ProxyService:
             protocol (Protocol): The protocol type of the proxy.
             login (str | None): The login credential (if applicable). Defaults to None.
             password (str | None): The password credential (if applicable). Defaults to None.
+            location (Location | None): Optional geolocation data associated with the proxy. Defaults to None.
 
         Returns:
             Proxy: The newly created and persisted proxy entity.
