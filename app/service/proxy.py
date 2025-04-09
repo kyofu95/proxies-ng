@@ -122,6 +122,8 @@ class ProxyService:
         country: str | None = None,
         *,
         only_checked: bool = False,
+        limit: int | None = None,
+        sort_by_unchecked: bool = False,
     ) -> list[Proxy]:
         """
         Retrieve a list of proxies filtered by protocol and/or country. Omits proxies without geoaddress.
@@ -130,13 +132,24 @@ class ProxyService:
             protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
             country (str | None, optional): The country to filter proxies by. Defaults to None.
             only_checked (bool): Get only verified proxies. Defaults no False.
+            limit (int | None): Optional limit on the number of proxies returned.
+            sort_by_unchecked (bool): If True, sort proxies with no 'last_tested' first.
+                Cannot be True when 'only_checked' is also True.
+
+        Raises:
+            ValueError: If both 'only_checked' and 'sort_by_unchecked' are True.
 
         Returns:
             list[Proxy]: A list of Proxy entities that match the given filters.
         """
+        if only_checked and sort_by_unchecked:
+            raise ValueError("Cannot sort by unchecked if only_checked is True")
+
         async with self.uow as uow:
             return await uow.proxy_repository.get_proxies(
                 protocol=protocol,
                 country=country,
                 only_checked=only_checked,
+                limit=limit,
+                sort_by_unchecked=sort_by_unchecked,
             )

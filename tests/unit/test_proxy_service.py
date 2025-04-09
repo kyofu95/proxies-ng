@@ -88,3 +88,9 @@ async def test_get_proxies(service: ProxyService, mock_uow: AsyncMock) -> None:
     await service.get_proxies()
     
     mock_uow.proxy_repository.get_proxies.assert_called_once()
+
+@pytest.mark.unit
+@pytest.mark.asyncio(loop_scope="module")
+async def test_get_proxies_exception(service: ProxyService, mock_uow: AsyncMock) -> None:
+    with pytest.raises(ValueError):
+        await service.get_proxies(sort_by_unchecked=True, only_checked=True)
