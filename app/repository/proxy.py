@@ -171,6 +171,7 @@ class ProxyRepository(BaseRepository[Proxy]):
         country: str | None = None,
         *,
         only_checked: bool = False,
+        limit: int | None = None,
     ) -> list[Proxy]:
         """
         Retrieve a list of proxies filtered by protocol and/or country. Omits proxies without geoaddress.
@@ -179,6 +180,7 @@ class ProxyRepository(BaseRepository[Proxy]):
             protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
             country (str | None, optional): The country to filter proxies by. Defaults to None.
             only_checked (bool): Get only verified proxies. Defaults no False.
+            limit (int | None, optional): Limits amount of queried proxies. Defaults to None.
 
         Returns:
             list[Proxy]: A list of Proxy entities that match the given filters.
@@ -197,6 +199,9 @@ class ProxyRepository(BaseRepository[Proxy]):
 
         # Descending order means latest proxy on the top
         stmt = stmt.order_by(ProxyHealth.last_tested.desc())
+
+        if limit:
+            stmt = stmt.limit(limit)
 
         result = await self.session.execute(stmt)
 
