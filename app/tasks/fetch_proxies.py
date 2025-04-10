@@ -1,4 +1,5 @@
 from ipaddress import IPv4Address, IPv6Address, ip_address
+from typing import Any
 
 import aiohttp
 
@@ -80,24 +81,25 @@ async def fetch_proxies_task(url: str, protocol: Protocol) -> None:
 
     geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
 
-    proxy_service = ProxyService(SQLUnitOfWork(async_session_factory))
+    proxy_service = ProxyService(SQLUnitOfWork(async_session_factory, raise_exc=False))
+
+    proxies: list[dict[str, Any]] = []
 
     for ip, port in raw_proxies:
         location = geoip_service.get_geolocation(ip)
         if not location:
             continue
 
-        await proxy_service.create(
-            address=ip,
-            port=port,
-            protocol=protocol,
-            login=None,
-            password=None,
-            location=location,
+        proxies.append(
+            {
+                "address": ip,
+                "port": port,
+                "protocol": protocol,
+                "location": location,
+            },
         )
 
-
-# TODO(sny): one single commit
+    await proxy_service.create_bulk(proxies)
 
 
 async def fetch_proxies() -> None:
