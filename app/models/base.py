@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import MetaData
@@ -27,3 +28,12 @@ class Base(DeclarativeBase):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True)
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Serialize the model instance to a dictionary.
+
+        Returns:
+            dict[str, Any]: A dictionary mapping column names to their current values.
+        """
+        return {field.name: getattr(self, field.name) for field in self.__table__.c}
