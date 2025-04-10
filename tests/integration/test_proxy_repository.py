@@ -13,12 +13,8 @@ def random_ipv4() -> IPv4Address | IPv6Address:
     ip = ".".join(map(str, (random.randint(0, 255) for _ in range(4))))
     return ip_address(ip)
 
-def make_proxy() -> Proxy:
-    health = ProxyHealth()
-    health.id = uuid4()
-    health.total_conn_attemps = 4
-    health.failed_conn_attemps = 0
 
+def make_proxy() -> Proxy:
     proxy = Proxy()
     proxy.id = uuid4()
     proxy.address = random_ipv4()
@@ -26,14 +22,20 @@ def make_proxy() -> Proxy:
     proxy.protocol = Protocol.SOCKS4
     proxy.geo_address = None
 
-    proxy.health = health
+    proxy.health = ProxyHealth()
+    proxy.health.id = uuid4()
+    proxy.health.total_conn_attemps = 4
+    proxy.health.failed_conn_attemps = 0
+    proxy.health.latency = 0
+    proxy.health.last_tested = None
+    proxy.health.proxy_id = proxy.id
 
     return proxy
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_add(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
     async with SQLUnitOfWork(db_session_factory) as uow:
         proxy = make_proxy()
         await uow.proxy_repository.add(proxy)
@@ -43,10 +45,10 @@ async def test_proxy_repository_add(db_session_factory: async_sessionmaker[Async
         assert stored_proxy
         assert stored_proxy.id == proxy.id
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_update(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
     async with SQLUnitOfWork(db_session_factory) as uow:
         proxy = make_proxy()
         await uow.proxy_repository.add(proxy)
@@ -65,10 +67,10 @@ async def test_proxy_repository_update(db_session_factory: async_sessionmaker[As
         assert stored_proxy.id == proxy.id
         assert stored_proxy.health.total_conn_attemps == 5
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_remove(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
     async with SQLUnitOfWork(db_session_factory) as uow:
         proxy = make_proxy()
         await uow.proxy_repository.add(proxy)
@@ -82,12 +84,11 @@ async def test_proxy_repository_remove(db_session_factory: async_sessionmaker[As
         stored_proxy = await uow.proxy_repository.get_by_id(proxy.id)
         assert stored_proxy is None
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_geo_address_add(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
     async with SQLUnitOfWork(db_session_factory) as uow:
-
         geo_address = ProxyAddress()
         geo_address.id = uuid4()
         geo_address.city = "Chicago"
@@ -110,10 +111,10 @@ async def test_proxy_repository_geo_address_add(db_session_factory: async_sessio
         assert stored_geo_address_b.region == geo_address.region
         assert stored_geo_address_b.city == geo_address.city
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_geo_address_proxy(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
     health = ProxyHealth()
     health.id = uuid4()
     health.total_conn_attemps = 4
@@ -161,13 +162,11 @@ async def test_proxy_repository_geo_address_proxy(db_session_factory: async_sess
         assert stored_geo_address
         assert stored_geo_address.country == geo_address.country
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
-
     async with SQLUnitOfWork(db_session_factory) as uow:
-
         proxy = make_proxy()
         proxy.protocol = Protocol.HTTPS
         geo_address = ProxyAddress()
@@ -207,7 +206,6 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
         await uow.proxy_repository.add(proxy)
 
     async with SQLUnitOfWork(db_session_factory) as uow:
-
         with pytest.raises(ValueError):
             proxies = await uow.proxy_repository.get_proxies(only_checked=True, sort_by_unchecked=True)
 
@@ -240,3 +238,11 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
 
         proxies = await uow.proxy_repository.get_proxies(sort_by_unchecked=True)
         assert len(proxies) == 3
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio(loop_scope="session")
+async def test_proxy_repository_add_bulk(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        proxies = [make_proxy() for _ in range(3)]
+        await uow.proxy_repository.add_bulk(proxies)

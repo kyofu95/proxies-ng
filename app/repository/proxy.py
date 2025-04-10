@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import and_, insert, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AlreadyExistsError, NotFoundError
@@ -38,6 +39,31 @@ class ProxyRepository(BaseRepository[Proxy]):
         """
         self.session.add(entity)
         return entity
+
+    async def add_bulk(self, proxies: list[Proxy]) -> None:
+        """
+        Bulk inserts multiple Proxy entities and their associated ProxyHealth records.
+
+        Proxies that already exist (based on conflict target) will be ignored.
+
+        Args:
+            proxies (list[Proxy]): A list of Proxy entities to insert.
+        """
+        if not proxies:
+            return
+
+        proxy_values = [proxy.to_dict() for proxy in proxies]
+
+        proxy_stmt = pg_insert(Proxy).values(proxy_values).on_conflict_do_nothing().returning(Proxy.id)
+        result = await self.session.execute(proxy_stmt)
+        inserted_ids = {row[0] for row in result.fetchall()}
+
+        # filter health_values by only inserted proxies
+        health_values = [proxy.health.to_dict() for proxy in proxies if proxy.id in inserted_ids]
+
+        if health_values:
+            health_stmt = pg_insert(ProxyHealth).values(health_values).on_conflict_do_nothing()
+            await self.session.execute(health_stmt)
 
     async def get_by_id(self, id_: UUID) -> Proxy | None:
         """
