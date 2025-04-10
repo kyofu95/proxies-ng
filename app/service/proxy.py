@@ -1,4 +1,5 @@
 from ipaddress import IPv4Address, IPv6Address
+from typing import Any
 from uuid import UUID, uuid4
 
 from app.core.uow import SQLUnitOfWork
@@ -45,40 +46,40 @@ class ProxyService:
         Returns:
             Proxy: The newly created and persisted proxy entity.
         """
-        proxy = Proxy()
-        proxy.id = uuid4()
-        proxy.address = address
-        proxy.port = port
-        proxy.protocol = protocol
-        proxy.login = login
-        proxy.password = password
-
-        proxy_health = ProxyHealth()
-        proxy_health.id = uuid4()
-        proxy_health.total_conn_attemps = 0
-        proxy_health.failed_conn_attemps = 0
-
-        proxy.health = proxy_health
+        proxy = await self._build(
+            address=address,
+            port=port,
+            protocol=protocol,
+            login=login,
+            password=password,
+            location=location,
+        )
 
         async with self.uow as uow:
-            if location:
-                geo_address = await uow.proxy_repository.get_geo_address_by_location(
-                    location.country,
-                    location.region,
-                    location.city,
-                )
-                if not geo_address:
-                    geo_address = ProxyAddress()
-                    geo_address.id = uuid4()
-                    geo_address.city = location.city
-                    geo_address.region = location.region
-                    geo_address.country = location.country
-                    geo_address = await uow.proxy_repository.add_geo_address(geo_address)
-                proxy.geo_address = geo_address
-            else:
-                proxy.geo_address = None
-
             return await uow.proxy_repository.add(proxy)
+
+    async def create_bulk(self, proxies_data: list[dict[str, Any]]) -> None:
+        """
+        Create and persist multiple proxy entities.
+
+        Args:
+            proxies_data (list[dict[str, Any]]): A list of dictionaries containing the data for each proxy entity.
+        """
+        proxies: list[Proxy] = []
+
+        for data in proxies_data:
+            proxy = await self._build(
+                address=data["address"],
+                port=data["port"],
+                protocol=data["protocol"],
+                login=data.get("login", None),
+                password=data.get("password", None),
+                location=data.get("location", None),
+            )
+            proxies.append(proxy)
+
+        async with self.uow as uow:
+            await uow.proxy_repository.add_bulk(proxies)
 
     async def get_by_id(self, id_: UUID) -> Proxy | None:
         """
@@ -153,3 +154,74 @@ class ProxyService:
                 limit=limit,
                 sort_by_unchecked=sort_by_unchecked,
             )
+
+    async def _build(
+        self,
+        address: IPv4Address | IPv6Address,
+        port: int,
+        protocol: Protocol,
+        login: str | None = None,
+        password: str | None = None,
+        location: Location | None = None,
+    ) -> Proxy:
+        """
+        Build a new Proxy entity with its associated health and location data.
+
+        Args:
+            address (IPv4Address | IPv6Address): The IP address of the proxy.
+            port (int): The port number of the proxy.
+            protocol (Protocol): The protocol type of the proxy.
+            login (str | None): The login credential (if applicable). Defaults to None.
+            password (str | None): The password credential (if applicable). Defaults to None.
+            location (Location | None): Optional geolocation data associated with the proxy. Defaults to None.
+
+        Returns:
+            Proxy: The constructed Proxy entity with associated health and geo location.
+        """
+        proxy = Proxy()
+        proxy.id = uuid4()
+        proxy.address = address
+        proxy.port = port
+        proxy.protocol = protocol
+        proxy.login = login
+        proxy.password = password
+
+        proxy.health = ProxyHealth()
+        proxy.health.id = uuid4()
+        proxy.health.total_conn_attemps = 0
+        proxy.health.failed_conn_attemps = 0
+        proxy.health.latency = 0
+        proxy.health.last_tested = None
+        proxy.health.proxy_id = proxy.id
+
+        proxy.geo_address = await self._resolve_location(location) if location else None
+
+        if proxy.geo_address:
+            proxy.geo_address_id = proxy.geo_address.id
+
+        return proxy
+
+    async def _resolve_location(self, location: Location) -> ProxyAddress:
+        """
+        Resolve the location to a ProxyAddress entity, or create a new address if not found.
+
+        Args:
+            location (Location): The location data (country, region, city) to resolve.
+
+        Returns:
+            ProxyAddress: The resolved or newly created ProxyAddress entity.
+        """
+        async with self.uow as uow:
+            geo_address = await uow.proxy_repository.get_geo_address_by_location(
+                location.country,
+                location.region,
+                location.city,
+            )
+            if not geo_address:
+                geo_address = ProxyAddress()
+                geo_address.id = uuid4()
+                geo_address.city = location.city
+                geo_address.region = location.region
+                geo_address.country = location.country
+                geo_address = await uow.proxy_repository.add_geo_address(geo_address)
+            return geo_address
