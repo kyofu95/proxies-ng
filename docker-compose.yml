@@ -47,7 +47,7 @@ services:
     build: .
     container_name: celery_worker
     entrypoint: ""
-    command: celery -A app.tasks.celery:celery_app worker --loglevel=DEBUG
+    command: celery -A app.tasks.celery:celery_app worker --loglevel=DEBUG -Q default,celery
     volumes:
       - ./geoip:/fastapi_project/geoip
     environment:

@@ -3,6 +3,7 @@ from collections.abc import Callable, Coroutine
 from typing import Any
 
 from celery import Celery, current_task
+from kombu import Queue
 from redis.asyncio import ConnectionPool, Redis
 
 from app.core.config import celery_settings, redis_settings
@@ -45,6 +46,10 @@ def get_redis() -> Redis:
 celery_app.conf.update(
     task_serializer="json",
     result_backend=celery_broker,
+)
+
+celery_app.conf.task_queues = (
+    Queue("default"),
 )
 
 type Coro = Callable[[], Coroutine[Any, Any, None]]
@@ -96,12 +101,12 @@ celery_app.autodiscover_tasks()
 
 celery_app.conf.beat_schedule = {
     "task_a_every_6_hours": {
-        "task": "tasks.get_proxy_sources_task",
+        "task": "app.tasks.celery.get_proxy_sources_task",
         "schedule": 6 * 60 * 60,  # 6 hours
         "options": {"queue": "default"},
     },
     "task_b_every_20_minutes": {
-        "task": "tasks.check_proxies_task",
+        "task": "app.tasks.celery.check_proxies_task",
         "schedule": 20 * 60,  # 20 minutes
         "options": {"queue": "default"},
     },
