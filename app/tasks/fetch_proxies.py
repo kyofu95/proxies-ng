@@ -2,8 +2,9 @@ from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Any
 
 import aiohttp
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.core.database import async_session_factory
+from app.core.database import create_session_factory
 from app.core.geoip import GeoIP
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Protocol
@@ -67,13 +68,14 @@ async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
     return proxies
 
 
-async def fetch_proxies_task(url: str, protocol: Protocol) -> None:
+async def fetch_proxies_task(url: str, protocol: Protocol, session_factory: async_sessionmaker[AsyncSession]) -> None:
     """
     Download proxies from a given URL, enrich them with geolocation, and save to the database.
 
     Args:
         url (str): The URL to fetch the proxies from.
         protocol (Protocol): The protocol to associate with the proxies (e.g., HTTP, SOCKS5).
+        session_factory (async_sessionmaker[AsyncSession]): The session factory for creating database sessions.
     """
     raw_proxies = await download_proxy_list(url)
     if not raw_proxies:
@@ -81,7 +83,7 @@ async def fetch_proxies_task(url: str, protocol: Protocol) -> None:
 
     geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
 
-    proxy_service = ProxyService(SQLUnitOfWork(async_session_factory, raise_exc=False))
+    proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
 
     proxies: list[dict[str, Any]] = []
 
@@ -109,10 +111,12 @@ async def fetch_proxies() -> None:
     This is the main task that loops through all known proxy sources and delegates
     downloading/parsing each one to "fetch_proxies_task".
     """
-    async with SQLUnitOfWork(async_session_factory) as uow:
+    session_factory = create_session_factory()
+
+    async with SQLUnitOfWork(session_factory) as uow:
         sources = await uow.source_repository.get_all()
 
     for source in sources:
         if not source.uri_predefined_type:
             continue
-        await fetch_proxies_task(source.uri, source.uri_predefined_type)
+        await fetch_proxies_task(source.uri, source.uri_predefined_type, session_factory)
