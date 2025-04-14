@@ -23,5 +23,5 @@ async def get_proxies(proxy_service: ProxyServiceDep) -> list[ProxyResponse]:
     """
     type_adapter = TypeAdapter(list[ProxyResponse])
 
-    proxies = await proxy_service.get_proxies()
+    proxies = await proxy_service.get_proxies(only_checked=True)
     return type_adapter.validate_python(proxies)
