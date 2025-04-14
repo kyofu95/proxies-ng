@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import StrEnum
 from ipaddress import IPv4Address, IPv6Address
 from typing import NamedTuple
