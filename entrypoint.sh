@@ -3,6 +3,8 @@
 # Run the migrations
 alembic upgrade head
 
+python3 -m app.init_data
+
 if [[ "$DEBUG" == "true" ]]; then
     # Try to install debugger and run server with it
     pip install debugpy
