@@ -23,12 +23,12 @@ class Location(NamedTuple):
     Attributes:
         city (str): The name of the city.
         region (str): The name of the region or state.
-        country (str): The name of the country.
+        country_code (str): The name of the country in 3166-1 Alpha-2 format.
     """
 
     city: str
     region: str
-    country: str
+    country_code: str
 
 
 class Protocol(StrEnum):
@@ -63,6 +63,7 @@ class ProxyAddress(Base):
     __table_args__ = (UniqueConstraint("country_code", "region", "city"),)
 
     country: Mapped[Country] = relationship(lazy="joined")
+    # TODO(sny): country_code might be incorrect name, consider country_code_id
     country_code: Mapped[UUID] = mapped_column(ForeignKey("countries.id", ondelete="RESTRICT"))
     region: Mapped[str]
     city: Mapped[str]

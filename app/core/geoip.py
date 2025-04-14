@@ -37,12 +37,12 @@ class GeoIP:
         if (
             not response.city.name
             or not response.subdivisions.most_specific.name
-            or not response.country.name
+            or not response.country.iso_code
         ):
             return None
 
         return Location(
             city=response.city.name,
             region=response.subdivisions.most_specific.name,
-            country=response.country.name,
+            country_code=response.country.iso_code,
         )
