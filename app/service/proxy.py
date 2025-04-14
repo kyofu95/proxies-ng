@@ -2,6 +2,7 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import Any
 from uuid import UUID, uuid4
 
+from app.core.exceptions import NotFoundError
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Location, Protocol, Proxy, ProxyAddress, ProxyHealth
 
@@ -120,7 +121,7 @@ class ProxyService:
     async def get_proxies(
         self,
         protocol: Protocol | None = None,
-        country: str | None = None,
+        country_alpha2_code: str | None = None,
         *,
         only_checked: bool = False,
         limit: int | None = None,
@@ -131,8 +132,9 @@ class ProxyService:
 
         Args:
             protocol (Protocol | None, optional): The protocol to filter proxies by. Defaults to None.
-            country (str | None, optional): The country to filter proxies by. Defaults to None.
-            only_checked (bool): Get only verified proxies. Defaults no False.
+            country_alpha2_code (str | None, optional): The country code in 3166-1 Alpha-2 format to
+                filter proxies by. Defaults to None.
+            only_checked (bool): Get only verified proxies. Defaults to False.
             limit (int | None): Optional limit on the number of proxies returned.
             sort_by_unchecked (bool): If True, sort proxies with no 'last_tested' first.
                 Cannot be True when 'only_checked' is also True.
@@ -149,7 +151,7 @@ class ProxyService:
         async with self.uow as uow:
             return await uow.proxy_repository.get_proxies(
                 protocol=protocol,
-                country=country,
+                country_alpha2_code=country_alpha2_code,
                 only_checked=only_checked,
                 limit=limit,
                 sort_by_unchecked=sort_by_unchecked,
@@ -213,15 +215,20 @@ class ProxyService:
         """
         async with self.uow as uow:
             geo_address = await uow.proxy_repository.get_geo_address_by_location(
-                location.country,
+                location.country_code,
                 location.region,
                 location.city,
             )
             if not geo_address:
+                country = await uow.proxy_repository.get_country_by_code(location.country_code)
+                if not country:
+                    raise NotFoundError("Could not find country with code {location.country_code}")
+
                 geo_address = ProxyAddress()
                 geo_address.id = uuid4()
                 geo_address.city = location.city
                 geo_address.region = location.region
-                geo_address.country = location.country
+                geo_address.country = country
+                geo_address.country_code = geo_address.country.id
                 geo_address = await uow.proxy_repository.add_geo_address(geo_address)
             return geo_address

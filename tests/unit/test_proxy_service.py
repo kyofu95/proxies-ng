@@ -31,7 +31,7 @@ async def test_create_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
     address = IPv4Address("192.168.1.1")
     port = 8080
     protocol = Protocol.HTTP
-    location = Location(city="A", region="B", country="C")
+    location = Location(city="A", region="B", country_code="US")
 
     mock_proxy = Proxy()
     mock_proxy.id = proxy_id
@@ -105,13 +105,13 @@ async def test_create_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
         "address": IPv4Address("192.168.1.1"),
         "port": 8080,
         "protocol": Protocol.HTTP,
-        "location": Location(city="City1", region="Region1", country="Country1"),
+        "location": Location(city="City1", region="Region1", country_code="FR"),
     }
     proxy_data_2 = {
         "address": IPv4Address("192.168.1.2"),
         "port": 9090,
         "protocol": Protocol.HTTPS,
-        "location": Location(city="City2", region="Region2", country="Country2"),
+        "location": Location(city="City2", region="Region2", country_code="NL"),
     }
 
     proxies_data = [proxy_data_1, proxy_data_2]
