@@ -1,23 +1,64 @@
+from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from app.models.proxy import Protocol
 
 
-class ProxyAddressResponse(BaseModel):
+class CountryResponse(BaseModel):
     """
-    Represents the geographical location of a proxy address.
+    Country response model.
 
     Attributes:
-        country (str): Country name.
-        region (str): Region or state.
-        city (str): City name.
+        code (str): ISO 3166-1 Alpha-2 country code.
+        name (str): Full country name.
     """
 
-    country: str
+    code: str
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProxyAddressResponse(BaseModel):
+    """
+    Proxy address response model with geolocation data.
+
+    Attributes:
+        region (str): Name of the region.
+        city (str): Name of the city.
+        country (CountryResponse): Associated country information (excluded from output).
+    """
+
+    @computed_field
+    def country_iso_code(self) -> str:
+        """
+        ISO 3166-1 Alpha-2 country code from related country object.
+
+        Returns:
+            str: Country code.
+        """
+        return self.country.code
+
     region: str
     city: str
+    country: CountryResponse = Field(exclude=True)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProxyHealthResponse(BaseModel):
+    """
+    Proxy health status information.
+
+    Attributes:
+        latency (int): Measured latency in milliseconds.
+        last_tested (datetime): Timestamp of the last proxy test.
+    """
+
+    latency: int
+    last_tested: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -41,5 +82,6 @@ class ProxyResponse(BaseModel):
     login: str | None = Field(default=None)
     password: str | None = Field(default=None)
     geoaddress: ProxyAddressResponse = Field(alias="geo_address", serialization_alias="geoaddress")
+    health: ProxyHealthResponse
 
     model_config = ConfigDict(from_attributes=True)
