@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.config import database_settings
 from app.models.base import Base
+from app.models.country import Country
 from app.models.proxy import Proxy
 from app.models.source import Source
 

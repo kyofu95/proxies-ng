@@ -13,6 +13,7 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
+from .country import Country
 
 
 class Location(NamedTuple):
@@ -52,15 +53,17 @@ class ProxyAddress(Base):
     Represents the geographical address associated with a proxy.
 
     Attributes:
-        country (str): Country where the proxy is located.
+        country_code (UUID): Foreign key to countries.id.
+        country (Country): Relationship to the Country model..
         region (str): Region or state of the proxy's location.
         city (str): City of the proxy's location.
     """
 
     __tablename__ = "proxies_address"
-    __table_args__ = (UniqueConstraint("country", "region", "city"),)
+    __table_args__ = (UniqueConstraint("country_code", "region", "city"),)
 
-    country: Mapped[str]
+    country: Mapped[Country] = relationship(lazy="joined")
+    country_code: Mapped[UUID] = mapped_column(ForeignKey("countries.id", ondelete="RESTRICT"))
     region: Mapped[str]
     city: Mapped[str]
 
