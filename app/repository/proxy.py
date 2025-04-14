@@ -4,7 +4,8 @@ from sqlalchemy import and_, insert, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import AlreadyExistsError, NotFoundError
+from app.core.exceptions import NotFoundError
+from app.models.country import Country
 from app.models.proxy import Protocol, Proxy, ProxyAddress, ProxyHealth
 
 from .base import BaseRepository
@@ -96,7 +97,7 @@ class ProxyRepository(BaseRepository[Proxy]):
                 "Entity has not been stored in database, but were marked for update.",
             )
 
-        await self.session.flush([entity])
+        await self.session.merge(entity)
 
         return entity
 
@@ -109,6 +110,20 @@ class ProxyRepository(BaseRepository[Proxy]):
         """
         await self.session.delete(entity)
 
+    async def get_country_by_code(self, code: str) -> Country | None:
+        """
+        Retrieve a Country entity by its ISO 3166-1 alpha-2 code.
+
+        Args:
+            code (str): The country code.
+
+        Returns:
+            Country | None: The Country entity if found, otherwise None.
+        """
+        stmt = select(Country).where(Country.code == code)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def add_geo_address(
         self,
         geo_address: ProxyAddress,
@@ -116,31 +131,17 @@ class ProxyRepository(BaseRepository[Proxy]):
         """
         Add a new ProxyAddress entity to the database.
 
-        If the address already exists, an AlreadyExistsError is raised.
-
         Args:
             geo_address (ProxyAddress): The ProxyAddress entity to add.
-
-        Raises:
-            AlreadyExistsError: If the address already exists.
 
         Returns:
             ProxyAddress: The added ProxyAddress entity.
         """
-        address = await self.get_geo_address_by_location(
-            geo_address.country,
-            geo_address.region,
-            geo_address.city,
-        )
-        if address:
-            raise AlreadyExistsError("Address already exists")
-
-        # insert, since it doesn't exists
         stmt = (
             insert(ProxyAddress)
             .values(
                 id=geo_address.id,
-                country=geo_address.country,
+                country_code=geo_address.country_code,
                 region=geo_address.region,
                 city=geo_address.city,
             )
@@ -165,7 +166,7 @@ class ProxyRepository(BaseRepository[Proxy]):
 
     async def get_geo_address_by_location(
         self,
-        country: str,
+        country_alpha2_code: str,
         region: str,
         city: str,
     ) -> ProxyAddress | None:
@@ -173,19 +174,23 @@ class ProxyRepository(BaseRepository[Proxy]):
         Retrieve a ProxyAddress by its country, region, and city.
 
         Args:
-            country (str): The country of the ProxyAddress.
+            country_alpha2_code (str): The country code of the ProxyAddress in 3166-1 Alpha-2 format.
             region (str): The region of the ProxyAddress.
             city (str): The city of the ProxyAddress.
 
         Returns:
             ProxyAddress | None: The ProxyAddress entity if found, otherwise None.
         """
-        stmt = select(ProxyAddress).where(
-            and_(
-                ProxyAddress.country == country,
-                ProxyAddress.region == region,
-                ProxyAddress.city == city,
-            ),
+        stmt = (
+            select(ProxyAddress)
+            .where(
+                and_(
+                    ProxyAddress.region == region,
+                    ProxyAddress.city == city,
+                ),
+            )
+            .join(Country)
+            .where(Country.code == country_alpha2_code)
         )
 
         result = await self.session.execute(stmt)
@@ -194,7 +199,7 @@ class ProxyRepository(BaseRepository[Proxy]):
     async def get_proxies(
         self,
         protocol: Protocol | None = None,
-        country: str | None = None,
+        country_alpha2_code: str | None = None,
         *,
         only_checked: bool = False,
         limit: int | None = None,
@@ -210,7 +215,8 @@ class ProxyRepository(BaseRepository[Proxy]):
 
         Args:
             protocol (Protocol | None): Optional protocol to filter proxies by.
-            country (str | None): Optional country to filter proxies by (requires associated geo address).
+            country_alpha2_code (str | None): Optional country code in 3166-1 Alpha-2 format
+                to filter proxies by (requires associated geo address).
             only_checked (bool): If True, include only proxies that were tested. Defaults to False.
             limit (int | None): Optional limit on the number of proxies returned.
             sort_by_unchecked (bool): If True, sort proxies with no 'last_tested' first.
@@ -225,13 +231,13 @@ class ProxyRepository(BaseRepository[Proxy]):
         if only_checked and sort_by_unchecked:
             raise ValueError("Cannot sort by unchecked if only_checked is True")
 
-        stmt = select(Proxy).where(Proxy.geo_address_id.isnot(None))
+        stmt = select(Proxy).where(Proxy.geo_address_id.is_not(None))
 
         if protocol:
             stmt = stmt.where(Proxy.protocol == protocol)
 
-        if country:
-            stmt = stmt.join(ProxyAddress).where(ProxyAddress.country == country)
+        if country_alpha2_code:
+            stmt = stmt.join(ProxyAddress).join(Country).where(Country.code == country_alpha2_code)
 
         stmt = stmt.join(ProxyHealth)
         if only_checked:
