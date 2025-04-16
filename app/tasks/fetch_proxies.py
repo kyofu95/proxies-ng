@@ -136,7 +136,11 @@ async def fetch_proxies_task(url: str, protocol: Protocol, session_factory: asyn
             },
         )
 
-    await proxy_service.create_bulk(proxies)
+# TODO(sny): check proxies before inserting?
+    # split proxies into chunks before inserting
+    chunk_size = 4_000
+    for chunks in [proxies[i : i + chunk_size] for i in range(0, len(proxies), chunk_size)]:
+        await proxy_service.create_bulk(chunks)
 
 
 async def fetch_proxies() -> None:
