@@ -1,3 +1,4 @@
+import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Any
 
@@ -17,6 +18,8 @@ HTTP_STATUS_OK = 200
 
 PORT_RANGE_START = 1
 PORT_RANGE_END = 65535
+
+logger = logging.getLogger(__name__)
 
 
 def validate_port(port: int) -> None:
@@ -82,9 +85,14 @@ async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
     async with aiohttp.ClientSession() as session:
         response = await session.get(url)
         if response.status != HTTP_STATUS_OK:
+            log_msg = f"Http request on url '{url}' responded with {response.status}"
+            logger.debug(log_msg)
             return None
 
         data = await response.text()
+        if not data:
+            logger.debug("Http request OK, but no data were attached")
+            return None
 
     proxies: list[RawProxyTuple] = []
 
@@ -136,7 +144,7 @@ async def fetch_proxies_task(url: str, protocol: Protocol, session_factory: asyn
             },
         )
 
-# TODO(sny): check proxies before inserting?
+    # TODO(sny): check proxies before inserting?
     # split proxies into chunks before inserting
     chunk_size = 4_000
     for chunks in [proxies[i : i + chunk_size] for i in range(0, len(proxies), chunk_size)]:
