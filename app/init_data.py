@@ -34,7 +34,7 @@ async def init_countries() -> None:
     """
     logger.info("Initializing database lookup tables")
     session_factory = create_session_factory()
-    async with SQLUnitOfWork(session_factory) as uow:
+    async with SQLUnitOfWork(session_factory, raise_exc=False) as uow:
         countries = []
         for country in pycountry.countries:
             countries.append(  # noqa: PERF401
