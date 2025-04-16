@@ -83,7 +83,7 @@ async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
         list[RawProxyTuple] | None: A list of parsed (IP, port) tuples or None on failure.
     """
     async with aiohttp.ClientSession() as session:
-        response = await session.get(url)
+        response = await session.get(url, allow_redirects=True, max_redirects=10)
         if response.status != HTTP_STATUS_OK:
             log_msg = f"Http request on url '{url}' responded with {response.status}"
             logger.debug(log_msg)
