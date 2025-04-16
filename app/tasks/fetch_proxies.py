@@ -33,21 +33,35 @@ def validate_port(port: int) -> None:
         raise ValueError("Valid port range is [1; 65535]")
 
 
-def try_parse_ip_port(ip_str: str, port_str: str) -> tuple[IPAddress, int] | None:
+def try_parse_ip_port(proxy_line: str) -> tuple[IPAddress, int] | None:
     """
-    Attempt to parse an IP and port from strings.
+    Attempt to parse a proxy string in the format IP:PORT or protocol://IP:PORT.
+
+    Supports both IPv4 and IPv6 addresses (without square brackets).
 
     Args:
-        ip_str (str): IP address as a string.
-        port_str (str): Port as a string.
+        proxy_line (str): The proxy string to parse.
 
     Returns:
-        tuple[IPAddress, int] | None: A tuple of IP address and port if valid, otherwise None.
+        tuple[IPAddress, int] | None: A tuple of (IP address, port) if parsing is successful, otherwise None.
     """
     try:
+        # TODO(sny): parse IPv6 with [2001:db8::1]:8080
+        substrings = proxy_line.split(":")
+        parts_length = len(substrings)
+
+        if parts_length == 2:
+            ip_str, port_str = substrings
+        elif parts_length == 3:
+            _, ip_str, port_str = substrings  # omit protocol
+            ip_str = ip_str.lstrip("/")
+        else:
+            return None
+
         ip = ip_address(ip_str)
         port = int(port_str)
         validate_port(port)
+
     except ValueError:
         return None
     return (ip, port)
@@ -76,8 +90,7 @@ async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
 
     lines = data.splitlines()
     for line in lines:
-        ip_str, port_str = line.split(sep=":")
-        parse_result = try_parse_ip_port(ip_str, port_str)
+        parse_result = try_parse_ip_port(line)
         if not parse_result:
             continue
 
