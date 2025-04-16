@@ -9,6 +9,7 @@ and proxy metadata resolution.
 """
 
 import asyncio
+import logging
 from uuid import uuid4
 
 import pycountry
@@ -17,6 +18,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.core.database import create_session_factory
 from app.core.uow import SQLUnitOfWork
 from app.models.country import Country
+
+logger = logging.getLogger(__name__)
 
 
 async def init_countries() -> None:
@@ -29,6 +32,7 @@ async def init_countries() -> None:
     Args:
         uow (SQLUnitOfWork): The unit of work used for database interaction.
     """
+    logger.info("Initializing database lookup tables")
     session_factory = create_session_factory()
     async with SQLUnitOfWork(session_factory) as uow:
         countries = []
