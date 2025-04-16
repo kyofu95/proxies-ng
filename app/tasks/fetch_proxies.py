@@ -15,6 +15,23 @@ type RawProxyTuple = tuple[IPAddress, int]
 
 HTTP_STATUS_OK = 200
 
+PORT_RANGE_START = 1
+PORT_RANGE_END = 65535
+
+
+def validate_port(port: int) -> None:
+    """
+    Validate that a given port number is within the valid TCP/UDP range.
+
+    Args:
+        port (int): The port number to validate.
+
+    Raises:
+        ValueError: If the port number is outside the valid range [1, 65535].
+    """
+    if not (PORT_RANGE_START <= port <= PORT_RANGE_END):
+        raise ValueError("Valid port range is [1; 65535]")
+
 
 def try_parse_ip_port(ip_str: str, port_str: str) -> tuple[IPAddress, int] | None:
     """
@@ -30,6 +47,7 @@ def try_parse_ip_port(ip_str: str, port_str: str) -> tuple[IPAddress, int] | Non
     try:
         ip = ip_address(ip_str)
         port = int(port_str)
+        validate_port(port)
     except ValueError:
         return None
     return (ip, port)
