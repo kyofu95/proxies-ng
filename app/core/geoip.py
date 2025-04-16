@@ -1,6 +1,7 @@
 from ipaddress import IPv4Address, IPv6Address
 
 from geoip2.database import Reader
+from geoip2.errors import AddressNotFoundError
 
 from app.models.proxy import Location
 
@@ -32,7 +33,10 @@ class GeoIP:
         Returns:
             Location | None: A Location object if geolocation data is available, otherwise None.
         """
-        response = self.reader.city(ip)
+        try:
+            response = self.reader.city(ip)
+        except AddressNotFoundError:
+            return None
 
         if (
             not response.city.name
