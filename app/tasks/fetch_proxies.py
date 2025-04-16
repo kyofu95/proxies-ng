@@ -88,6 +88,10 @@ async def fetch_proxies_task(url: str, protocol: Protocol, session_factory: asyn
     proxies: list[dict[str, Any]] = []
 
     for ip, port in raw_proxies:
+        # we need only public ip's
+        if ip.is_private or ip.is_reserved:
+            continue
+
         location = geoip_service.get_geolocation(ip)
         if not location:
             continue
