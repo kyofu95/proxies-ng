@@ -1,5 +1,6 @@
-import pytest
 from ipaddress import IPv4Address, IPv6Address
+
+import pytest
 
 from app.tasks.fetch_proxies import try_parse_ip_port
 
@@ -7,7 +8,7 @@ from app.tasks.fetch_proxies import try_parse_ip_port
 @pytest.mark.unit
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "input_str,expected",
+    ("input_str", "expected"),
     [
         ("127.0.0.1:8080", (IPv4Address("127.0.0.1"), 8080)),
         ("http://192.168.1.1:3128", (IPv4Address("192.168.1.1"), 3128)),
