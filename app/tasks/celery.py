@@ -8,6 +8,7 @@ from redis.asyncio import ConnectionPool, Redis
 
 from app.core.config import celery_settings, redis_settings
 
+from .check_proxies import check_proxies
 from .fetch_proxies import fetch_proxies
 
 
@@ -93,6 +94,7 @@ def get_proxy_sources_task() -> None:
 @celery_app.task
 def check_proxies_task() -> None:
     """Celery basic task to check proxies availability and validity."""
+    asyncio.run(async_task_runner(check_proxies))
 
 
 celery_app.autodiscover_tasks()
