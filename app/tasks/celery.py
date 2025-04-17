@@ -48,9 +48,7 @@ celery_app.conf.update(
     result_backend=celery_broker,
 )
 
-celery_app.conf.task_queues = (
-    Queue("default"),
-)
+celery_app.conf.task_queues = (Queue("default"),)
 
 type Coro = Callable[[], Coroutine[Any, Any, None]]
 
