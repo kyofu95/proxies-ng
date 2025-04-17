@@ -60,11 +60,11 @@ class ProxyAddress(Base):
     """
 
     __tablename__ = "proxies_address"
-    __table_args__ = (UniqueConstraint("country_code", "region", "city"),)
+    __table_args__ = (UniqueConstraint("country_id", "region", "city"),)
 
+    country_id: Mapped[UUID] = mapped_column(ForeignKey("countries.id", ondelete="RESTRICT"))
     country: Mapped[Country] = relationship(lazy="joined")
-    # TODO(sny): country_code might be incorrect name, consider country_code_id
-    country_code: Mapped[UUID] = mapped_column(ForeignKey("countries.id", ondelete="RESTRICT"))
+
     region: Mapped[str]
     city: Mapped[str]
 
@@ -126,7 +126,7 @@ class Proxy(Base):
     login: Mapped[str | None] = mapped_column(default=None)
     password: Mapped[str | None] = mapped_column(default=None)
 
-    geo_address_id: Mapped[UUID | None] = mapped_column(ForeignKey("proxies_address.id"))
+    geo_address_id: Mapped[UUID | None] = mapped_column(ForeignKey("proxies_address.id", ondelete="RESTRICT"))
     geo_address: Mapped[ProxyAddress | None] = relationship(
         lazy="joined",
     )
