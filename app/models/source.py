@@ -66,7 +66,7 @@ class Source(Base):
 
     __tablename__ = "sources"
 
-    name: Mapped[str]
+    name: Mapped[str] = mapped_column(index=True)
     uri: Mapped[str]
     uri_predefined_type: Mapped[Protocol | None] = mapped_column(
         SA_Enum(Protocol, values_callable=lambda obj: [e.name for e in obj]),
