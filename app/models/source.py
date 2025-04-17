@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import IntEnum
 from uuid import UUID
 
@@ -46,11 +46,7 @@ class SourceHealth(Base):
     total_conn_attemps: Mapped[int]
     failed_conn_attemps: Mapped[int]
 
-    last_used: Mapped[datetime | None] = mapped_column(
-        SA_DateTime(timezone=True),
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
-    )
+    last_used: Mapped[datetime | None] = mapped_column(SA_DateTime(timezone=True))
 
     source_id: Mapped[UUID] = mapped_column(ForeignKey("sources.id"))
     source: Mapped[Source] = relationship(back_populates="health", single_parent=True)
