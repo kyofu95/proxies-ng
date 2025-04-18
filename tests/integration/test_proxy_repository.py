@@ -95,7 +95,7 @@ async def test_proxy_repository_geo_address_add(db_session_factory: async_sessio
         geo_address.region = "Illinois"
         geo_address.country = await uow.proxy_repository.get_country_by_code("US")
         assert geo_address.country
-        geo_address.country_id =  geo_address.country.id
+        geo_address.country_id = geo_address.country.id
 
         stored_geo_address = await uow.proxy_repository.add_geo_address(geo_address)
         assert stored_geo_address
@@ -138,7 +138,7 @@ async def test_proxy_repository_geo_address_proxy(db_session_factory: async_sess
         geo_address.country = await uow.proxy_repository.get_country_by_code("US")
         geo_address.region = "Michigan"
         assert geo_address.country
-        geo_address.country_id =  geo_address.country.id
+        geo_address.country_id = geo_address.country.id
 
     async with SQLUnitOfWork(db_session_factory) as uow:
         assert await uow.proxy_repository.add(proxy)
@@ -167,9 +167,12 @@ async def test_proxy_repository_geo_address_proxy(db_session_factory: async_sess
         assert stored_geo_address
         assert stored_geo_address.country.name == geo_address.country.name
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
-async def test_proxy_repository_get_geo_address_by_location(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
+async def test_proxy_repository_get_geo_address_by_location(
+    db_session_factory: async_sessionmaker[AsyncSession],
+) -> None:
     async with SQLUnitOfWork(db_session_factory) as uow:
         stored_geo_address = await uow.proxy_repository.get_geo_address_by_location("NL", "A", "B")
         assert not stored_geo_address
@@ -187,7 +190,7 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
         geo_address.country = await uow.proxy_repository.get_country_by_code("NL")
         geo_address.region = "North Holland"
         assert geo_address.country
-        geo_address.country_code =  geo_address.country.id
+        geo_address.country_code = geo_address.country.id
         proxy.geo_address = geo_address
 
         await uow.proxy_repository.add(proxy)
@@ -200,7 +203,7 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
         geo_address.country = await uow.proxy_repository.get_country_by_code("NL")
         geo_address.region = "Utrecht"
         assert geo_address.country
-        geo_address.country_code =  geo_address.country.id
+        geo_address.country_code = geo_address.country.id
         proxy.geo_address = geo_address
 
         await uow.proxy_repository.add(proxy)
@@ -213,7 +216,7 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
         geo_address.country = await uow.proxy_repository.get_country_by_code("FR")
         geo_address.region = "Auvergne-Rhone-Alpes"
         assert geo_address.country
-        geo_address.country_code =  geo_address.country.id
+        geo_address.country_code = geo_address.country.id
         proxy.geo_address = geo_address
 
         await uow.proxy_repository.add(proxy)
@@ -265,6 +268,7 @@ async def test_proxy_repository_add_bulk(db_session_factory: async_sessionmaker[
         proxies = [make_proxy() for _ in range(3)]
         await uow.proxy_repository.add_bulk(proxies)
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_get_country_by_code(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
@@ -274,3 +278,26 @@ async def test_proxy_repository_get_country_by_code(db_session_factory: async_se
 
         country = await uow.proxy_repository.get_country_by_code("XX")
         assert not country
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio(loop_scope="session")
+async def test_proxy_repository_get_countries(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        de = await uow.proxy_repository.get_country_by_code("DE")
+        us = await uow.proxy_repository.get_country_by_code("US")
+        fr = await uow.proxy_repository.get_country_by_code("FR")
+
+        address1 = ProxyAddress(id=uuid4(), country_id=de.id, region="Bavaria", city="Munich")
+        address2 = ProxyAddress(id=uuid4(), country_id=us.id, region="California", city="LA")
+        address3 = ProxyAddress(id=uuid4(), country_id=us.id, region="New York", city="NYC")
+        address4 = ProxyAddress(id=uuid4(), country_id=fr.id, region="Île-de-France", city="Paris")
+
+        uow.session.add_all([address1, address2, address3, address4])
+
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        countries = await uow.proxy_repository.get_countries()
+        assert countries
+        assert "DE" in countries
+        assert "US" in countries
+        assert "FR" in countries

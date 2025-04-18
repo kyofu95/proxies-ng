@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import and_, insert, select
+from sqlalchemy import and_, distinct, insert, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -254,4 +254,16 @@ class ProxyRepository(BaseRepository[Proxy]):
 
         result = await self.session.execute(stmt)
 
+        return list(result.scalars().all())
+
+    async def get_countries(self) -> list[str]:
+        """
+        Retrieve a list of distinct country codes associated with proxies.
+
+        Returns:
+            list[str]: A list of ISO 3166-1 alpha-2 country codes.
+        """
+        stmt = select(distinct(Country.code)).join(ProxyAddress)
+
+        result = await self.session.execute(stmt)
         return list(result.scalars().all())
