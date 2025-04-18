@@ -45,7 +45,10 @@ async def init_countries() -> None:
                 },
             )
         stmt = pg_insert(Country).values(countries).on_conflict_do_nothing()
-        await uow.session.execute(stmt)
+        if uow.session:
+            await uow.session.execute(stmt)
+        else:
+            logger.debug("UoW seesion is not initialized")
 
 
 asyncio.run(init_countries())
