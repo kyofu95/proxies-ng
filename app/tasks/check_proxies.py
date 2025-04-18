@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import NamedTuple
 
@@ -13,6 +14,8 @@ from app.models.proxy import Protocol, Proxy
 from app.service.proxy import ProxyService
 
 HTTP_STATUS_OK = 200
+
+logger = logging.getLogger(__name__)
 
 
 class ProxyHttpResult(NamedTuple):
@@ -141,8 +144,8 @@ async def try_http_call_with_proxy(
         asyncio.exceptions.IncompleteReadError,
     ):
         pass
-    except Exception as exc:  # noqa: BLE001
-        print([proxy_url, exc])
+    except Exception:  # noqa: BLE001
+        logger.debug("Proxy check failed with exception", exc_info=True)
 
     await graceful_shutdown(protocol)
     return None
