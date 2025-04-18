@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import time
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import NamedTuple
 
@@ -119,10 +118,10 @@ async def try_http_call_with_proxy(
 
     try:
         async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
-            #  TODO(sny): measuring elapsed time like this will lead to inaccurate timings
-            start_time = time.monotonic()
+            loop = asyncio.get_running_loop()
+            start_time = loop.time()
             async with session.get(url=url, proxy=proxy) as resp:
-                duration = int((time.monotonic() - start_time) * 1_000)  # seconds to milliseconds
+                duration = int((loop.time() - start_time) * 1_000)  # seconds to milliseconds
                 body = await resp.text() if 200 <= resp.status < 300 else ""
 
                 await graceful_shutdown(protocol)
