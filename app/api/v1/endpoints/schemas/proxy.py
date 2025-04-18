@@ -5,20 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from app.models.proxy import Protocol
 
-
-class CountryResponse(BaseModel):
-    """
-    Country response model.
-
-    Attributes:
-        code (str): ISO 3166-1 Alpha-2 country code.
-        name (str): Full country name.
-    """
-
-    code: str
-    name: str
-
-    model_config = ConfigDict(from_attributes=True)
+from .country import CountryResponse
 
 
 class ProxyAddressResponse(BaseModel):
