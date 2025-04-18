@@ -261,8 +261,10 @@ async def check_proxies() -> None:
     tasks = [check_single_proxy(proxy) for proxy in proxies]
 
     values = await asyncio.gather(*tasks, return_exceptions=True)
+
+    # filter out exceptions
+    checked_proxies = [proxy for proxy in values if not isinstance(proxy, BaseException)]
+
     # TODO(sny): one single commit
-    for proxy in values:
-        if isinstance(proxy, BaseException):
-            continue
+    for proxy in checked_proxies:
         await proxy_service.update(proxy)
