@@ -262,7 +262,8 @@ class ProxyService:
             if not geo_address:
                 country = await uow.proxy_repository.get_country_by_code(location.country_code)
                 if not country:
-                    raise NotFoundError(f"Could not find country with code {location.country_code}")
+                    message = f"Could not find country with code {location.country_code}"
+                    raise NotFoundError(message)
 
                 geo_address = ProxyAddress()
                 geo_address.id = uuid4()
