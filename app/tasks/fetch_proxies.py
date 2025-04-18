@@ -1,3 +1,5 @@
+import asyncio
+import datetime
 import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Any
@@ -9,7 +11,9 @@ from app.core.database import create_session_factory
 from app.core.geoip import GeoIP
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Protocol
-from app.service.proxy import ProxyService
+from app.service.proxy import InitialHealth, ProxyService
+
+from .check_proxies import check_proxy_with_aws
 
 type IPAddress = IPv4Address | IPv6Address
 type RawProxyTuple = tuple[IPAddress, int]
@@ -107,6 +111,28 @@ async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
     return proxies
 
 
+async def check_proxy(
+    raw_proxy: RawProxyTuple,
+    protocol: Protocol,
+) -> tuple[IPv4Address | IPv6Address, int, int, datetime.datetime] | None:
+    """
+    Check the validity of a proxy by testing its connectivity and latency using AWS.
+
+    Args:
+        raw_proxy (RawProxyTuple): A tuple of (IP address, port) representing the proxy.
+        protocol (Protocol): The protocol to use for checking the proxy (e.g., HTTP, SOCKS5).
+
+    Returns:
+        tuple[IPv4Address | IPv6Address, int, int, datetime.datetime] | None:
+            A tuple containing the proxy's IP address, port, latency (ms), and the current time
+            when the test was conducted. Returns None if the proxy is invalid.
+    """
+    success, latency = await check_proxy_with_aws(raw_proxy[0], raw_proxy[1], protocol)
+    if success:
+        return (raw_proxy[0], raw_proxy[1], latency, datetime.datetime.now(tz=datetime.UTC))
+    return None
+
+
 async def fetch_proxies_task(url: str, protocol: Protocol, session_factory: async_sessionmaker[AsyncSession]) -> None:
     """
     Download proxies from a given URL, enrich them with geolocation, and save to the database.
@@ -120,13 +146,20 @@ async def fetch_proxies_task(url: str, protocol: Protocol, session_factory: asyn
     if not raw_proxies:
         return
 
+    # we need only public ip's
+    raw_proxies = [proxy for proxy in raw_proxies if not proxy[0].is_private and not proxy[0].is_reserved]
+
+    tasks = [check_proxy(proxy, protocol) for proxy in raw_proxies]
+    values = await asyncio.gather(*tasks, return_exceptions=True)
+    checked_proxies = [proxy for proxy in values if proxy and not isinstance(proxy, BaseException)]
+
     geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
 
     proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
 
     proxies: list[dict[str, Any]] = []
 
-    for ip, port in raw_proxies:
+    for ip, port, latency, last_tested in checked_proxies:
         # we need only public ip's
         if ip.is_private or ip.is_reserved:
             continue
@@ -141,10 +174,10 @@ async def fetch_proxies_task(url: str, protocol: Protocol, session_factory: asyn
                 "port": port,
                 "protocol": protocol,
                 "location": location,
+                "initial_health": InitialHealth(latency=latency, tested=last_tested),
             },
         )
 
-    # TODO(sny): check proxies before inserting?
     # split proxies into chunks before inserting
     chunk_size = 4_000
     for chunks in [proxies[i : i + chunk_size] for i in range(0, len(proxies), chunk_size)]:

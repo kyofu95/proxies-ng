@@ -1,5 +1,6 @@
+from datetime import datetime
 from ipaddress import IPv4Address, IPv6Address
-from typing import Any
+from typing import Any, NamedTuple
 from uuid import UUID, uuid4
 
 import pycountry
@@ -7,6 +8,19 @@ import pycountry
 from app.core.exceptions import CountryCodeError, NotFoundError
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Location, Protocol, Proxy, ProxyAddress, ProxyHealth
+
+
+class InitialHealth(NamedTuple):
+    """
+    Represent the initial health status of a proxy.
+
+    Attributes:
+        latency (int): Measured latency in milliseconds.
+        tested (datetime): The timestamp when the proxy was tested.
+    """
+
+    latency: int
+    tested: datetime
 
 
 class ProxyService:
@@ -78,6 +92,7 @@ class ProxyService:
                 login=data.get("login", None),
                 password=data.get("password", None),
                 location=data.get("location", None),
+                initial_health=data.get("initial_health", None),
             )
             proxies.append(proxy)
 
@@ -172,6 +187,7 @@ class ProxyService:
         login: str | None = None,
         password: str | None = None,
         location: Location | None = None,
+        initial_health: InitialHealth | None = None,
     ) -> Proxy:
         """
         Build a new Proxy entity with its associated health and location data.
@@ -183,6 +199,8 @@ class ProxyService:
             login (str | None): The login credential (if applicable). Defaults to None.
             password (str | None): The password credential (if applicable). Defaults to None.
             location (Location | None): Optional geolocation data associated with the proxy. Defaults to None.
+            initial_health (InitialHealth | None, optional): Optional initial health metrics for the proxy.
+                Defaults to None.
 
         Returns:
             Proxy: The constructed Proxy entity with associated health and geo location.
@@ -202,6 +220,11 @@ class ProxyService:
         proxy.health.latency = 0
         proxy.health.last_tested = None
         proxy.health.proxy_id = proxy.id
+
+        if initial_health:
+            proxy.health.total_conn_attemps = 1
+            proxy.health.latency = initial_health.latency
+            proxy.health.last_tested = initial_health.tested
 
         proxy.geo_address = await self._resolve_location(location) if location else None
 
