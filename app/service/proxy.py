@@ -179,6 +179,16 @@ class ProxyService:
                 sort_by_unchecked=sort_by_unchecked,
             )
 
+    async def get_countries(self) -> list[str]:
+        """
+        Retrieve a list of distinct country codes associated with proxies.
+
+        Returns:
+            list[str]: A list of ISO 3166-1 alpha-2 country codes.
+        """
+        async with self.uow as uow:
+            return await uow.proxy_repository.get_countries()
+
     async def _build(
         self,
         address: IPv4Address | IPv6Address,

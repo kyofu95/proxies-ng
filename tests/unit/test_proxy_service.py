@@ -100,6 +100,14 @@ async def test_get_proxies_exception(service: ProxyService, mock_uow: AsyncMock)
 
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="module")
+async def test_get_countries(service: ProxyService, mock_uow: AsyncMock) -> None:
+    await service.get_countries()
+
+    mock_uow.proxy_repository.get_countries.assert_called_once()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio(loop_scope="module")
 async def test_create_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
     proxy_data_1 = {
         "address": IPv4Address("192.168.1.1"),
