@@ -151,7 +151,7 @@ class ProxyService:
             raise ValueError("Cannot sort by unchecked if only_checked is True")
 
         # validate country code
-        if not pycountry.countries.get(alpha_2=country_alpha2_code):
+        if country_alpha2_code and not pycountry.countries.get(alpha_2=country_alpha2_code):
             message = f"Unknown country code: {country_alpha2_code}"
             raise CountryCodeError(message)
 
