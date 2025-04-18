@@ -141,7 +141,7 @@ class ProxyRepository(BaseRepository[Proxy]):
             insert(ProxyAddress)
             .values(
                 id=geo_address.id,
-                country_code=geo_address.country_code,
+                country_id=geo_address.country_id,
                 region=geo_address.region,
                 city=geo_address.city,
             )

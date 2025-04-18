@@ -229,6 +229,6 @@ class ProxyService:
                 geo_address.city = location.city
                 geo_address.region = location.region
                 geo_address.country = country
-                geo_address.country_code = geo_address.country.id
+                geo_address.country_id = geo_address.country.id
                 geo_address = await uow.proxy_repository.add_geo_address(geo_address)
             return geo_address

@@ -95,7 +95,7 @@ async def test_proxy_repository_geo_address_add(db_session_factory: async_sessio
         geo_address.region = "Illinois"
         geo_address.country = await uow.proxy_repository.get_country_by_code("US")
         assert geo_address.country
-        geo_address.country_code =  geo_address.country.id
+        geo_address.country_id =  geo_address.country.id
 
         stored_geo_address = await uow.proxy_repository.add_geo_address(geo_address)
         assert stored_geo_address
@@ -138,7 +138,7 @@ async def test_proxy_repository_geo_address_proxy(db_session_factory: async_sess
         geo_address.country = await uow.proxy_repository.get_country_by_code("US")
         geo_address.region = "Michigan"
         assert geo_address.country
-        geo_address.country_code =  geo_address.country.id
+        geo_address.country_id =  geo_address.country.id
 
     async with SQLUnitOfWork(db_session_factory) as uow:
         assert await uow.proxy_repository.add(proxy)
