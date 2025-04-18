@@ -94,7 +94,7 @@ class ProxyRepository(BaseRepository[Proxy]):
         stored_entity = await self.session.get(Proxy, entity.id)
         if not stored_entity:
             raise NotFoundError(
-                "Entity has not been stored in database, but were marked for update.",
+                "Entity does not exist in the database.",
             )
 
         await self.session.merge(entity)
