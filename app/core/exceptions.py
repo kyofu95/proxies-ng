@@ -30,3 +30,11 @@ class DatabaseError(BaseError):
     This exception should be used when an error occurs while interacting
     with the database, such as connection failures or query issues.
     """
+
+class CountryCodeError(BaseError):
+    """
+    Exception raised when an invalid or unsupported country code is encountered.
+
+    This exception should be used to indicate issues related to country code
+    validation, normalization, or lookup operations.
+    """

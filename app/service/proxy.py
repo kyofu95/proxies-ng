@@ -2,7 +2,9 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import Any
 from uuid import UUID, uuid4
 
-from app.core.exceptions import NotFoundError
+import pycountry
+
+from app.core.exceptions import CountryCodeError, NotFoundError
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Location, Protocol, Proxy, ProxyAddress, ProxyHealth
 
@@ -147,6 +149,11 @@ class ProxyService:
         """
         if only_checked and sort_by_unchecked:
             raise ValueError("Cannot sort by unchecked if only_checked is True")
+
+        # validate country code
+        if not pycountry.countries.get(alpha_2=country_alpha2_code):
+            message = f"Unknown country code: {country_alpha2_code}"
+            raise CountryCodeError(message)
 
         async with self.uow as uow:
             return await uow.proxy_repository.get_proxies(
