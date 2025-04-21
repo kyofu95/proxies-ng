@@ -1,26 +1,7 @@
 let gridInstance = null;
+let selectedCountry = null;
 
-function fetchProxies(country_code = '') {
-    let url = 'http://localhost:8000/api/proxy/';
-    if (country_code) {
-        url += `?country_code=${country_code}`;
-    }
-
-    return fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            return data.map(proxy => [
-                proxy.ip,
-                proxy.port,
-                proxy.protocol,
-                proxy.geoaddress.country_iso_code,
-                proxy.health.latency,
-                new Date(proxy.health.last_tested).toLocaleString()
-            ]);
-        });
-}
-
-function renderGrid(rows) {
+function renderGrid() {
     if (gridInstance) gridInstance.destroy();
 
     gridInstance = new gridjs.Grid({
@@ -32,13 +13,34 @@ function renderGrid(rows) {
             'Latency (ms)',
             'Last Tested'
         ],
-        data: rows,
+        sort: false,
         search: false,
-        sort: true,
         pagination: {
-            enabled: true,
-            limit: 10
-        }
+            limit: 10,
+            server: {
+                url: (prev, page, limit) => {
+                    params = `${prev}?limit=${limit}&offset=${page * limit}`
+
+                    if (selectedCountry) {
+                        params += '&country_code=' + selectedCountry
+                    }
+
+                    return params
+                }
+            }
+        },
+        server: {
+            url: 'http://localhost:8000/api/proxy',
+            then: data => data.proxies.map(proxy => [
+                proxy.ip,
+                proxy.port,
+                proxy.protocol,
+                proxy.geoaddress.country_iso_code,
+                proxy.health.latency,
+                new Date(proxy.health.last_tested).toLocaleString()
+            ]),
+            total: data => data.total
+        },
     }).render(document.getElementById("proxy-table"));
 }
 
@@ -64,11 +66,10 @@ function loadCountries() {
 
 document.addEventListener("DOMContentLoaded", function () {
     loadCountries();
-
-    fetchProxies().then(renderGrid);
+    renderGrid();
 
     document.getElementById("country-select").addEventListener("change", function () {
         selectedCountry = this.value;
-        fetchProxies(selectedCountry).then(renderGrid);
+        renderGrid();
     });
 });
