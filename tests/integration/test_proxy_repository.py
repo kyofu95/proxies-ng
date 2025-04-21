@@ -282,6 +282,28 @@ async def test_proxy_repository_get_country_by_code(db_session_factory: async_se
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
+async def test_proxy_repository_proxies_count(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        proxy = make_proxy()
+        proxy.protocol = Protocol.HTTPS
+        geo_address = ProxyAddress()
+        geo_address.id = uuid4()
+        geo_address.city = "Dallas"
+        geo_address.country = await uow.proxy_repository.get_country_by_code("US")
+        geo_address.region = "Texas"
+        assert geo_address.country
+        geo_address.country_code = geo_address.country.id
+        proxy.geo_address = geo_address
+
+        await uow.proxy_repository.add(proxy)
+
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        count = await uow.proxy_repository.get_proxies_count()
+        assert count
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_get_countries(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
     async with SQLUnitOfWork(db_session_factory) as uow:
         de = await uow.proxy_repository.get_country_by_code("DE")

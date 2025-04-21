@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import and_, distinct, insert, select
+from sqlalchemy import and_, distinct, func, insert, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -260,6 +260,42 @@ class ProxyRepository(BaseRepository[Proxy]):
         result = await self.session.execute(stmt)
 
         return list(result.scalars().all())
+
+    async def get_proxies_count(
+        self,
+        protocol: Protocol | None = None,
+        country_alpha2_code: str | None = None,
+        *,
+        only_checked: bool = False,
+    ) -> int:
+        """
+        Count the number of proxies that match the given filters.
+
+        This method returns the number of proxy entries that have a non-null geo address.
+        You can optionally filter by protocol, country, and whether the proxy was checked.
+
+        Args:
+            protocol (Protocol | None): Optional protocol to filter proxies by.
+            country_alpha2_code (str | None): Optional country code in ISO 3166-1 Alpha-2 format to filter proxies.
+            only_checked (bool): If True, count only proxies that have been tested. Defaults to False.
+
+        Returns:
+            int: The number of proxies matching the provided filters.
+        """
+        stmt = select(func.count(distinct(Proxy.id))).select_from(Proxy).where(Proxy.geo_address_id.is_not(None))
+
+        if protocol:
+            stmt = stmt.where(Proxy.protocol == protocol)
+
+        if country_alpha2_code:
+            stmt = stmt.join(ProxyAddress).join(Country).where(Country.code == country_alpha2_code)
+
+        stmt = stmt.join(ProxyHealth)
+        if only_checked:
+            stmt = stmt.where(and_(ProxyHealth.last_tested.is_not(None), ProxyHealth.total_conn_attemps > 0))
+
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
     async def get_countries(self) -> list[str]:
         """
