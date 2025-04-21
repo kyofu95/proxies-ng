@@ -36,7 +36,12 @@ async def get_proxies(
         PaginatedProxyResponse: A paginated response containing a list of proxies and metadata.
     """
     type_adapter = TypeAdapter(list[ProxyResponse])
-    proxies = await proxy_service.get_proxies(country_alpha2_code=country_code, only_checked=True)
+    proxies = await proxy_service.get_proxies(
+        country_alpha2_code=country_code,
+        only_checked=True,
+        offset=offset,
+        limit=limit,
+    )
     validated_proxies = type_adapter.validate_python(proxies)
 
     total_count = await proxy_service.get_proxies_count(country_alpha2_code=country_code, only_checked=True)
