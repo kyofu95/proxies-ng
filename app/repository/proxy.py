@@ -202,6 +202,7 @@ class ProxyRepository(BaseRepository[Proxy]):
         country_alpha2_code: str | None = None,
         *,
         only_checked: bool = False,
+        offset: int | None = None,
         limit: int | None = None,
         sort_by_unchecked: bool = False,
     ) -> list[Proxy]:
@@ -218,7 +219,8 @@ class ProxyRepository(BaseRepository[Proxy]):
             country_alpha2_code (str | None): Optional country code in 3166-1 Alpha-2 format
                 to filter proxies by (requires associated geo address).
             only_checked (bool): If True, include only proxies that were tested. Defaults to False.
-            limit (int | None): Optional limit on the number of proxies returned.
+            offset (int | None): Optional number of records to skip (for pagination).
+            limit (int | None): Optional maximum number of proxies to return (for pagination).
             sort_by_unchecked (bool): If True, sort proxies with no 'last_tested' first.
                 Cannot be True when 'only_checked' is also True.
 
@@ -248,6 +250,9 @@ class ProxyRepository(BaseRepository[Proxy]):
 
         if sort_by_unchecked:
             stmt = stmt.order_by(ProxyHealth.last_tested.asc().nulls_first())
+
+        if offset:
+            stmt = stmt.offset(offset)
 
         if limit:
             stmt = stmt.limit(limit)
