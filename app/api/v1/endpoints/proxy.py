@@ -20,7 +20,7 @@ async def get_proxies(
     """
     Retrieve a list of available proxies.
 
-    This endpoint fetches all stored proxies from the database using the ProxyService.
+    This endpoint fetches all stored proxies from the database.
     It can filter the proxies by the 2-letter country code and only return those marked as "checked".
 
     Args:
