@@ -182,6 +182,33 @@ class ProxyService:
                 sort_by_unchecked=sort_by_unchecked,
             )
 
+    async def get_proxies_count(
+        self,
+        protocol: Protocol | None = None,
+        country_alpha2_code: str | None = None,
+        *,
+        only_checked: bool = False,
+    ) -> int:
+        """
+        Count the number of proxies that match the given filters.
+
+        Delegates the counting logic to the proxy repository, using the configured unit of work.
+
+        Args:
+            protocol (Protocol | None): Optional protocol to filter proxies by.
+            country_alpha2_code (str | None): Optional ISO 3166-1 Alpha-2 country code to filter proxies by.
+            only_checked (bool): If True, count only proxies that have been tested. Defaults to False.
+
+        Returns:
+            int: The number of proxies matching the specified filters.
+        """
+        async with self.uow as uow:
+            return await uow.proxy_repository.get_proxies_count(
+                protocol=protocol,
+                country_alpha2_code=country_alpha2_code,
+                only_checked=only_checked,
+            )
+
     async def get_countries(self) -> list[str]:
         """
         Retrieve a list of distinct country codes associated with proxies.

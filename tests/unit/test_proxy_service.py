@@ -100,6 +100,14 @@ async def test_get_proxies_exception(service: ProxyService, mock_uow: AsyncMock)
 
 @pytest.mark.unit
 @pytest.mark.asyncio(loop_scope="module")
+async def test_proxies_count(service: ProxyService, mock_uow: AsyncMock) -> None:
+    await service.get_proxies_count()
+
+    mock_uow.proxy_repository.get_proxies_count.assert_called_once()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio(loop_scope="module")
 async def test_get_countries(service: ProxyService, mock_uow: AsyncMock) -> None:
     await service.get_countries()
 
