@@ -141,6 +141,7 @@ class ProxyService:
         country_alpha2_code: str | None = None,
         *,
         only_checked: bool = False,
+        offset: int | None = None,
         limit: int | None = None,
         sort_by_unchecked: bool = False,
     ) -> list[Proxy]:
@@ -152,7 +153,8 @@ class ProxyService:
             country_alpha2_code (str | None, optional): The country code in 3166-1 Alpha-2 format to
                 filter proxies by. Defaults to None.
             only_checked (bool): Get only verified proxies. Defaults to False.
-            limit (int | None): Optional limit on the number of proxies returned.
+            offset (int | None, optional): Number of proxies to skip (used for pagination). Defaults to None.
+            limit (int | None, optional): Maximum number of proxies to return. Defaults to None.
             sort_by_unchecked (bool): If True, sort proxies with no 'last_tested' first.
                 Cannot be True when 'only_checked' is also True.
 
@@ -175,6 +177,7 @@ class ProxyService:
                 protocol=protocol,
                 country_alpha2_code=country_alpha2_code,
                 only_checked=only_checked,
+                offset=offset,
                 limit=limit,
                 sort_by_unchecked=sort_by_unchecked,
             )
