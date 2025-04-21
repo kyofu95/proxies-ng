@@ -72,3 +72,23 @@ class ProxyResponse(BaseModel):
     health: ProxyHealthResponse
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class PaginatedProxyResponse(BaseModel):
+    """
+    Paginated response model for proxies.
+
+    Represents a paginated list of proxy responses along with metadata
+    such as total count, offset, and limit for pagination control.
+
+    Attributes:
+        proxies (list[ProxyResponse]): A list of proxy response objects.
+        total (int): Total number of proxies available matching the query.
+        offset (int | None): The starting index of the returned items.
+        limit (int): The maximum number of items returned.
+    """
+
+    proxies: list[ProxyResponse]
+    total: int
+    offset: int | None
+    limit: int
