@@ -57,10 +57,17 @@ function loadCountries() {
             defaultOption.textContent = 'All';
             select.appendChild(defaultOption);
 
-            data.sort().forEach(code => {
+            const countries = data.map(code => ({
+                code,
+                name: displayNames.of(code) || code
+            }));
+
+            countries.sort((a, b) => a.name.localeCompare(b.name, 'en'));
+
+            countries.forEach(({ code, name }) => {
                 const option = document.createElement("option");
                 option.value = code;
-                option.textContent = displayNames.of(code);
+                option.textContent = name;
                 select.appendChild(option);
             });
         });
