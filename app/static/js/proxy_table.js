@@ -37,7 +37,7 @@ function renderGrid() {
                 proxy.ip,
                 proxy.port,
                 proxy.protocol,
-                proxy.geoaddress.country_iso_code,
+                displayNames.of(proxy.geoaddress.country_iso_code) || proxy.geoaddress.country_iso_code,
                 proxy.health.latency,
                 new Date(proxy.health.last_tested).toLocaleString()
             ]),
