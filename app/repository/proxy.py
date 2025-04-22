@@ -304,7 +304,7 @@ class ProxyRepository(BaseRepository[Proxy]):
         Returns:
             list[str]: A list of ISO 3166-1 alpha-2 country codes.
         """
-        stmt = select(distinct(Country.code)).join(ProxyAddress)
+        stmt = select(distinct(Country.code)).join(ProxyAddress).order_by(Country.code.asc())
 
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
