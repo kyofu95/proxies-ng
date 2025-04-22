@@ -5,6 +5,7 @@ from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Any
 
 import aiohttp
+import aiohttp.client_exceptions
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.database import create_session_factory
@@ -86,17 +87,21 @@ async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
     Returns:
         list[RawProxyTuple] | None: A list of parsed (IP, port) tuples or None on failure.
     """
-    async with aiohttp.ClientSession() as session:
-        response = await session.get(url, allow_redirects=True, max_redirects=10)
-        if response.status != HTTP_STATUS_OK:
-            log_msg = f"Http request on url '{url}' responded with {response.status}"
-            logger.debug(log_msg)
-            return None
+    try:
+        async with aiohttp.ClientSession() as session:
+            response = await session.get(url, allow_redirects=True, max_redirects=10)
+            if response.status != HTTP_STATUS_OK:
+                log_msg = f"Http request on url '{url}' responded with {response.status}"
+                logger.debug(log_msg)
+                return None
 
-        data = await response.text()
-        if not data:
-            logger.debug("Http request OK, but no data were attached")
-            return None
+            data = await response.text()
+            if not data:
+                logger.debug("Http request OK, but no data were attached")
+                return None
+    except aiohttp.client_exceptions.ClientError as exc:
+        msg = f"Http request to {url} failed"
+        logger.debug(msg, exc_info=exc)
 
     proxies: list[RawProxyTuple] = []
 
