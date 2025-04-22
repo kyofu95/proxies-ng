@@ -1,6 +1,8 @@
 let gridInstance = null;
 let selectedCountry = null;
 
+const displayNames = new Intl.DisplayNames(['en'], { type: 'region' });
+
 function renderGrid() {
     if (gridInstance) gridInstance.destroy();
 
@@ -58,7 +60,7 @@ function loadCountries() {
             data.sort().forEach(code => {
                 const option = document.createElement("option");
                 option.value = code;
-                option.textContent = code;
+                option.textContent = displayNames.of(code);
                 select.appendChild(option);
             });
         });
