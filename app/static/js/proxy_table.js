@@ -35,7 +35,7 @@ function renderGrid() {
             }
         },
         server: {
-            url: 'http://localhost:8000/api/proxy',
+            url: 'http://localhost:8000/api/proxy/',
             then: data => data.proxies.map(proxy => [
                 proxy.ip,
                 proxy.port,
