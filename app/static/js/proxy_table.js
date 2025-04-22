@@ -1,5 +1,5 @@
 let gridInstance = null;
-let selectedCountry = null;
+let selectedCountry = '';
 
 const displayNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
