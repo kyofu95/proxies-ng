@@ -1,3 +1,4 @@
+import logging
 from types import TracebackType
 from typing import Self
 
@@ -8,6 +9,8 @@ from app.repository.proxy import ProxyRepository
 from app.repository.source import SourceRepository
 
 from .exceptions import BaseError, DatabaseError
+
+logger = logging.getLogger(__name__)
 
 
 class SQLUnitOfWork:
@@ -30,7 +33,7 @@ class SQLUnitOfWork:
         """
         self.session_factory = session_factory
         self.session: AsyncSession | None = None
-        self.raise_exception = raise_exc # Exception handling flag
+        self.raise_exception = raise_exc  # Exception handling flag
 
     async def __aenter__(self) -> Self:
         """
@@ -84,9 +87,9 @@ class SQLUnitOfWork:
 
         # but process sqlalchemy exceptions
         if isinstance(exc_value, SQLAlchemyError):
+            logger.exception("uow intecepted sqlalchemy exception")
             if self.raise_exception:
                 raise DatabaseError from exc_value
-            # TODO(sny): log exception
 
         return False
 
