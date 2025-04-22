@@ -15,6 +15,9 @@ function renderGrid() {
             'Latency (ms)',
             'Last Tested'
         ],
+        className: {
+            table: 'table table-striped table-hover'
+        },
         sort: false,
         search: false,
         pagination: {
