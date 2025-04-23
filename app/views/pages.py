@@ -24,3 +24,18 @@ async def index(request: Request) -> HTMLResponse:
     """
     context = {"request": request}
     return templates.TemplateResponse("index.html", context=context)
+
+
+@router.get("/api", status_code=200)
+async def api_docs(request: Request) -> HTMLResponse:
+    """
+    Render the index (home) page.
+
+    Args:
+        request (Request): The incoming HTTP request object.
+
+    Returns:
+        HTMLResponse: Rendered HTML response using the index.html Jinja2 template.
+    """
+    context = {"request": request}
+    return templates.TemplateResponse("api.html", context=context)
