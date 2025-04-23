@@ -4,6 +4,32 @@ let selectedProtocol = '';
 
 const displayNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
+function timedeltaFormat(tdMilliseconds) {
+    const secondsTotal = Math.floor(tdMilliseconds / 1000);
+    let seconds = secondsTotal;
+
+    const periods = [
+        ["year", 60 * 60 * 24 * 365],
+        ["month", 60 * 60 * 24 * 30],
+        ["day", 60 * 60 * 24],
+        ["hour", 60 * 60],
+        ["minute", 60],
+        ["second", 1],
+    ];
+
+    const strings = [];
+
+    for (const [name, duration] of periods) {
+        if (seconds >= duration) {
+            const value = Math.floor(seconds / duration);
+            seconds %= duration;
+            strings.push(`${value} ${name}${value > 1 ? "s" : ""}`);
+        }
+    }
+
+    return strings.join(", ");
+}
+
 function renderGrid() {
     if (gridInstance) gridInstance.destroy();
 
@@ -47,7 +73,7 @@ function renderGrid() {
                 proxy.protocol,
                 displayNames.of(proxy.geoaddress.country_iso_code) || proxy.geoaddress.country_iso_code,
                 proxy.health.latency,
-                new Date(proxy.health.last_tested).toLocaleString()
+                timedeltaFormat(new Date() - new Date(proxy.health.last_tested))
             ]),
             total: data => data.total
         },
