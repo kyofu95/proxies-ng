@@ -1,5 +1,6 @@
 let gridInstance = null;
 let selectedCountry = '';
+let selectedProtocol = '';
 
 const displayNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
@@ -28,6 +29,10 @@ function renderGrid() {
 
                     if (selectedCountry) {
                         params += '&country_code=' + selectedCountry
+                    }
+
+                    if (selectedProtocol) {
+                        params += '&protocol=' + selectedProtocol
                     }
 
                     return params
@@ -76,12 +81,36 @@ function loadCountries() {
         });
 }
 
+function fillProtocols() {
+    const protocols = ["HTTP", "HTTPS", "SOCKS4", "SOCKS5"];
+
+    const select = document.getElementById("protocol-select");
+
+    const defaultOption = document.createElement("option");
+    defaultOption.value = '';
+    defaultOption.textContent = 'All';
+    select.appendChild(defaultOption);
+
+    protocols.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     loadCountries();
+    fillProtocols();
     renderGrid();
 
     document.getElementById("country-select").addEventListener("change", function () {
         selectedCountry = this.value;
+        renderGrid();
+    });
+
+    document.getElementById("protocol-select").addEventListener("change", function () {
+        selectedProtocol = this.value;
         renderGrid();
     });
 });
