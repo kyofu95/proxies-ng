@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Query, status
 from pydantic import TypeAdapter
 
+from app.models.proxy import Protocol
+
 from .schemas.proxy import PaginatedProxyResponse, ProxyResponse
 from .utils.di_deps import ProxyServiceDep
 
@@ -16,6 +18,7 @@ async def get_proxies(
         str | None,
         Query(..., description="2-letter country code", min_length=2, max_length=2),
     ] = None,
+    protocol: Annotated[Protocol | None, Query(...)] = None,
     offset: int | None = None,
     limit: int = 100,
 ) -> PaginatedProxyResponse:
@@ -29,6 +32,7 @@ async def get_proxies(
     Args:
         proxy_service (ProxyServiceDep): Injected ProxyService dependency.
         country_code (str | None): Optional 2-letter ISO 3166-1 Alpha-2 country code to filter proxies by.
+        protocol (Protocol | None): Optional protocol to filter proxies by (e.g., HTTP, SOCKS5).
         offset (int | None): Optional number of items to skip before returning results.
         limit (int): Maximum number of proxies to return. Defaults to 100.
 
@@ -37,6 +41,7 @@ async def get_proxies(
     """
     type_adapter = TypeAdapter(list[ProxyResponse])
     proxies = await proxy_service.get_proxies(
+        protocol=protocol,
         country_alpha2_code=country_code,
         only_checked=True,
         offset=offset,
@@ -44,6 +49,8 @@ async def get_proxies(
     )
     validated_proxies = type_adapter.validate_python(proxies)
 
-    total_count = await proxy_service.get_proxies_count(country_alpha2_code=country_code, only_checked=True)
+    total_count = await proxy_service.get_proxies_count(
+        protocol=protocol, country_alpha2_code=country_code, only_checked=True
+    )
 
     return PaginatedProxyResponse(proxies=validated_proxies, total=total_count, offset=offset, limit=limit)
