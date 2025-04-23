@@ -22,7 +22,7 @@ function renderGrid() {
         sort: false,
         search: false,
         pagination: {
-            limit: 10,
+            limit: 12,
             server: {
                 url: (prev, page, limit) => {
                     params = `${prev}?limit=${limit}&offset=${page * limit}`
@@ -40,7 +40,7 @@ function renderGrid() {
             }
         },
         server: {
-            url: 'http://localhost:8000/api/proxy/',
+            url: `${window.location.origin}/api/proxy/`,
             then: data => data.proxies.map(proxy => [
                 proxy.ip,
                 proxy.port,
@@ -55,7 +55,7 @@ function renderGrid() {
 }
 
 function loadCountries() {
-    fetch('http://localhost:8000/api/country/')
+    fetch(`${window.location.origin}/api/country/`)
         .then(res => res.json())
         .then(data => {
             const select = document.getElementById("country-select");
