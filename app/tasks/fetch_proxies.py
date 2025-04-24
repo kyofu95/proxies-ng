@@ -6,7 +6,6 @@ from typing import Any
 
 import aiohttp
 import aiohttp.client_exceptions
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.database import create_session_factory
 from app.core.geoip import GeoIP
@@ -17,7 +16,6 @@ from app.service.proxy import InitialHealth, ProxyService
 from .check_proxies import check_proxy_with_aws
 
 type IPAddress = IPv4Address | IPv6Address
-type RawProxyTuple = tuple[IPAddress, int]
 
 HTTP_STATUS_OK = 200
 
@@ -75,17 +73,22 @@ def try_parse_ip_port(proxy_line: str) -> tuple[IPAddress, int] | None:
     return (ip, port)
 
 
-async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
+async def download_proxy_list(
+    url: str,
+    protocol: Protocol,
+) -> list[tuple[IPAddress, int, Protocol]] | None:
     """
-    Download and parse a list of proxy addresses from a given URL.
+    Download a list of proxies from the given URL and parses them.
 
-    The URL is expected to return proxies in the format "IP:PORT" per line.
+    The URL is expected to return proxies in the format "IP:PORT" or "PROTOCOL://IP:PORT" per line.
 
     Args:
         url (str): The URL to download the proxy list from.
+        protocol (Protocol): The protocol type to associate with each proxy.
 
     Returns:
-        list[RawProxyTuple] | None: A list of parsed (IP, port) tuples or None on failure.
+        list[tuple[IPAddress, int, Protocol]] | None: A list of tuples containing IP, port, and protocol.
+            Returns None if the request fails or the response is invalid.
     """
     try:
         async with aiohttp.ClientSession() as session:
@@ -103,7 +106,7 @@ async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
         msg = f"Http request to {url} failed"
         logger.debug(msg, exc_info=exc)
 
-    proxies: list[RawProxyTuple] = []
+    proxies: list[tuple[IPAddress, int, Protocol]] = []
 
     lines = data.splitlines()
     for line in lines:
@@ -111,91 +114,45 @@ async def download_proxy_list(url: str) -> list[RawProxyTuple] | None:
         if not parse_result:
             continue
 
-        proxies.append(parse_result)
+        proxies.append((*parse_result, protocol))
 
     return proxies
 
 
 async def check_proxy(
-    raw_proxy: RawProxyTuple,
+    raw_proxy: tuple[IPAddress, int],
     protocol: Protocol,
-) -> tuple[IPv4Address | IPv6Address, int, int, datetime.datetime] | None:
+) -> tuple[IPv4Address | IPv6Address, int, Protocol, int, datetime.datetime] | None:
     """
     Check the validity of a proxy by testing its connectivity and latency using AWS.
 
     Args:
-        raw_proxy (RawProxyTuple): A tuple of (IP address, port) representing the proxy.
+        raw_proxy (tuple[IPAddress, int]): A tuple of (IP address, port) representing the proxy.
         protocol (Protocol): The protocol to use for checking the proxy (e.g., HTTP, SOCKS5).
 
     Returns:
-        tuple[IPv4Address | IPv6Address, int, int, datetime.datetime] | None:
-            A tuple containing the proxy's IP address, port, latency (ms), and the current time
-            when the test was conducted. Returns None if the proxy is invalid.
+        tuple[IPAddress, int, Protocol, int, datetime.datetime] | None:
+            A tuple containing the IP address, port, protocol, latency in milliseconds,
+            and timestamp of the test. Returns None if the proxy is invalid.
     """
     success, latency = await check_proxy_with_aws(raw_proxy[0], raw_proxy[1], protocol)
     if success:
-        return (raw_proxy[0], raw_proxy[1], latency, datetime.datetime.now(tz=datetime.UTC))
+        return (raw_proxy[0], raw_proxy[1], protocol, latency, datetime.datetime.now(tz=datetime.UTC))
     return None
-
-
-async def fetch_proxies_task(url: str, protocol: Protocol, session_factory: async_sessionmaker[AsyncSession]) -> None:
-    """
-    Download proxies from a given URL, enrich them with geolocation, and save to the database.
-
-    Args:
-        url (str): The URL to fetch the proxies from.
-        protocol (Protocol): The protocol to associate with the proxies (e.g., HTTP, SOCKS5).
-        session_factory (async_sessionmaker[AsyncSession]): The session factory for creating database sessions.
-    """
-    raw_proxies = await download_proxy_list(url)
-    if not raw_proxies:
-        return
-
-    # we need only public ip's
-    raw_proxies = [proxy for proxy in raw_proxies if not proxy[0].is_private and not proxy[0].is_reserved]
-
-    tasks = [check_proxy(proxy, protocol) for proxy in raw_proxies]
-    values = await asyncio.gather(*tasks, return_exceptions=True)
-    checked_proxies = [proxy for proxy in values if proxy and not isinstance(proxy, BaseException)]
-
-    geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
-
-    proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
-
-    proxies: list[dict[str, Any]] = []
-
-    for ip, port, latency, last_tested in checked_proxies:
-        # we need only public ip's
-        if ip.is_private or ip.is_reserved:
-            continue
-
-        location = geoip_service.get_geolocation(ip)
-        if not location:
-            continue
-
-        proxies.append(
-            {
-                "address": ip,
-                "port": port,
-                "protocol": protocol,
-                "location": location,
-                "initial_health": InitialHealth(latency=latency, tested=last_tested),
-            },
-        )
-
-    # split proxies into chunks before inserting
-    chunk_size = 4_000
-    for chunks in [proxies[i : i + chunk_size] for i in range(0, len(proxies), chunk_size)]:
-        await proxy_service.create_bulk(chunks)
 
 
 async def fetch_proxies() -> None:
     """
     Fetch and store proxies from all predefined proxy sources in the database.
 
-    This is the main task that loops through all known proxy sources and delegates
-    downloading/parsing each one to "fetch_proxies_task".
+    This function:
+    - Fetches all proxy sources from the database.
+    - Downloads proxy lists from each source.
+    - Validates each proxy via AWS checks.
+    - Enriches valid proxies with geolocation.
+    - Persists valid and public proxies in bulk.
     """
+    # TODO(sny): split function into smaller functions
     session_factory = create_session_factory()
 
     async with SQLUnitOfWork(session_factory) as uow:
@@ -204,7 +161,46 @@ async def fetch_proxies() -> None:
     if not sources:
         return
 
-    for source in sources:
-        if not source.uri_predefined_type:
+    geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
+
+    fetch_tasks = [
+        download_proxy_list(source.uri, source.uri_predefined_type) for source in sources if source.uri_predefined_type
+    ]
+    fetch_tasks_values = await asyncio.gather(*fetch_tasks, return_exceptions=True)
+
+    unchecked_proxies: list[tuple[IPAddress, int, Protocol]] = []
+    for proxy_list in fetch_tasks_values:
+        if not proxy_list or isinstance(proxy_list, BaseException):
             continue
-        await fetch_proxies_task(source.uri, source.uri_predefined_type, session_factory)
+        unchecked_proxies.extend(proxy_list)
+
+    proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
+
+    chunk_size = 500
+    for chunks in [unchecked_proxies[i : i + chunk_size] for i in range(0, len(unchecked_proxies), chunk_size)]:
+        check_tasks = [check_proxy((proxy[0], proxy[1]), proxy[2]) for proxy in chunks]
+        check_tasks_values = await asyncio.gather(*check_tasks, return_exceptions=True)
+        checked_proxies = [proxy for proxy in check_tasks_values if proxy and not isinstance(proxy, BaseException)]
+
+        proxies: list[dict[str, Any]] = []
+
+        for ip, port, protocol, latency, last_tested in checked_proxies:
+            # we need only public ip's
+            if ip.is_private or ip.is_reserved:
+                continue
+
+            location = geoip_service.get_geolocation(ip)
+            if not location:
+                continue
+
+            proxies.append(
+                {
+                    "address": ip,
+                    "port": port,
+                    "protocol": protocol,
+                    "location": location,
+                    "initial_health": InitialHealth(latency=latency, tested=last_tested),
+                },
+            )
+
+        await proxy_service.create_bulk(proxies)
