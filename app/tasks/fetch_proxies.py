@@ -201,6 +201,9 @@ async def fetch_proxies() -> None:
     async with SQLUnitOfWork(session_factory) as uow:
         sources = await uow.source_repository.get_all()
 
+    if not sources:
+        return
+
     for source in sources:
         if not source.uri_predefined_type:
             continue
