@@ -11,6 +11,7 @@ from app.core.database import create_session_factory
 from app.core.geoip import GeoIP
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Protocol
+from app.models.source import Source
 from app.service.proxy import InitialHealth, ProxyService
 
 from .check_proxies import check_proxy_with_aws
@@ -141,6 +142,33 @@ async def check_proxy(
     return None
 
 
+async def fetch_all_proxy_lists(sources: list[Source]) -> list[tuple[IPAddress, int, Protocol]]:
+    """
+    Fetch proxy lists from all provided sources and parses them.
+
+    Args:
+        sources (list[Source]): List of proxy sources to fetch from.
+
+    Returns:
+        list[tuple[IPAddress, int, Protocol]]: A list of all parsed proxies from all sources.
+    """
+    unchecked_proxies: list[tuple[IPAddress, int, Protocol]] = []
+
+    fetch_tasks = [
+        download_proxy_list(source.uri, source.uri_predefined_type) for source in sources if source.uri_predefined_type
+    ]
+
+    fetch_tasks_results = await asyncio.gather(*fetch_tasks, return_exceptions=True)
+
+    # process list of lists to list
+    for proxy_list in fetch_tasks_results:
+        if not proxy_list or isinstance(proxy_list, BaseException):
+            continue
+        unchecked_proxies.extend(proxy_list)
+
+    return unchecked_proxies
+
+
 async def fetch_proxies() -> None:
     """
     Fetch and store proxies from all predefined proxy sources in the database.
@@ -163,16 +191,9 @@ async def fetch_proxies() -> None:
 
     geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
 
-    fetch_tasks = [
-        download_proxy_list(source.uri, source.uri_predefined_type) for source in sources if source.uri_predefined_type
-    ]
-    fetch_tasks_values = await asyncio.gather(*fetch_tasks, return_exceptions=True)
-
-    unchecked_proxies: list[tuple[IPAddress, int, Protocol]] = []
-    for proxy_list in fetch_tasks_values:
-        if not proxy_list or isinstance(proxy_list, BaseException):
-            continue
-        unchecked_proxies.extend(proxy_list)
+    unchecked_proxies = await fetch_all_proxy_lists(sources)
+    if not unchecked_proxies:
+        return
 
     proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
 
