@@ -169,6 +169,24 @@ async def fetch_all_proxy_lists(sources: list[Source]) -> list[tuple[IPAddress, 
     return unchecked_proxies
 
 
+async def check_list_of_proxies(
+    proxies: list[tuple[IPv4Address | IPv6Address, int, Protocol]],
+) -> list[tuple[IPv4Address | IPv6Address, int, Protocol, int, datetime.datetime]]:
+    """
+    Asynchronously check a list of proxies for availability and latency.
+
+    Args:
+        proxies (list[tuple[IPAddress, int, Protocol]]): A list of proxies to check.
+
+    Returns:
+        list[tuple[IPAddress, int, Protocol, int, datetime.datetime]]:
+            A list of successfully validated proxies with latency and test time.
+    """
+    check_tasks = [check_proxy((proxy[0], proxy[1]), proxy[2]) for proxy in proxies]
+    check_tasks_results = await asyncio.gather(*check_tasks, return_exceptions=True)
+    return [proxy for proxy in check_tasks_results if proxy and not isinstance(proxy, BaseException)]
+
+
 async def fetch_proxies() -> None:
     """
     Fetch and store proxies from all predefined proxy sources in the database.
@@ -198,10 +216,11 @@ async def fetch_proxies() -> None:
     proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
 
     chunk_size = 500
-    for chunks in [unchecked_proxies[i : i + chunk_size] for i in range(0, len(unchecked_proxies), chunk_size)]:
-        check_tasks = [check_proxy((proxy[0], proxy[1]), proxy[2]) for proxy in chunks]
-        check_tasks_values = await asyncio.gather(*check_tasks, return_exceptions=True)
-        checked_proxies = [proxy for proxy in check_tasks_values if proxy and not isinstance(proxy, BaseException)]
+    for i in range(0, len(unchecked_proxies), chunk_size):
+        chunk = unchecked_proxies[i : i + chunk_size]
+        checked_proxies = await check_list_of_proxies(chunk)
+        if not checked_proxies:
+            continue
 
         proxies: list[dict[str, Any]] = []
 
