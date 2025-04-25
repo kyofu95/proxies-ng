@@ -95,8 +95,7 @@ async def download_proxy_list(
         async with aiohttp.ClientSession() as session:
             response = await session.get(url, allow_redirects=True, max_redirects=10)
             if response.status != HTTP_STATUS_OK:
-                log_msg = f"Http request on url '{url}' responded with {response.status}"
-                logger.debug(log_msg)
+                logger.debug("Http request on url '%s' responded with status %i", url, response.status)
                 return None
 
             data = await response.text()
@@ -104,8 +103,7 @@ async def download_proxy_list(
                 logger.debug("Http request OK, but no data were attached")
                 return None
     except aiohttp.client_exceptions.ClientError as exc:
-        msg = f"Http request to {url} failed"
-        logger.debug(msg, exc_info=exc)
+        logger.debug("Http request to '%s' failed", url, exc_info=exc)
 
     proxies: list[tuple[IPAddress, int, Protocol]] = []
 
