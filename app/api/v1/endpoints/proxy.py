@@ -50,7 +50,9 @@ async def get_proxies(
     validated_proxies = type_adapter.validate_python(proxies)
 
     total_count = await proxy_service.get_proxies_count(
-        protocol=protocol, country_alpha2_code=country_code, only_checked=True
+        protocol=protocol,
+        country_alpha2_code=country_code,
+        only_checked=True,
     )
 
     return PaginatedProxyResponse(proxies=validated_proxies, total=total_count, offset=offset, limit=limit)
