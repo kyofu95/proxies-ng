@@ -4,9 +4,6 @@ import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Any
 
-import aiohttp
-import aiohttp.client_exceptions
-
 from app.core.database import create_session_factory
 from app.core.geoip import GeoIP
 from app.core.uow import SQLUnitOfWork
@@ -15,10 +12,9 @@ from app.models.source import Source
 from app.service.proxy import InitialHealth, ProxyService
 
 from .check_proxies import check_proxy_with_aws
+from .utils.network_request import HTTP_STATUS_OK, try_http_request
 
 type IPAddress = IPv4Address | IPv6Address
-
-HTTP_STATUS_OK = 200
 
 PORT_RANGE_START = 1
 PORT_RANGE_END = 65535
@@ -91,23 +87,18 @@ async def download_proxy_list(
         list[tuple[IPAddress, int, Protocol]] | None: A list of tuples containing IP, port, and protocol.
             Returns None if the request fails or the response is invalid.
     """
-    try:
-        async with aiohttp.ClientSession() as session:
-            response = await session.get(url, allow_redirects=True, max_redirects=10)
-            if response.status != HTTP_STATUS_OK:
-                logger.debug("Http request on url '%s' responded with status %i", url, response.status)
-                return None
+    http_result = await try_http_request(url=url)
+    if not http_result:
+        logger.debug("Http request to '%s' failed", url)
+        return None
 
-            data = await response.text()
-            if not data:
-                logger.debug("Http request OK, but no data were attached")
-                return None
-    except aiohttp.client_exceptions.ClientError as exc:
-        logger.debug("Http request to '%s' failed", url, exc_info=exc)
+    if http_result.status != HTTP_STATUS_OK:
+        logger.debug("Http request to '%s' failed with status code %i", url, http_result.status)
+        return None
 
     proxies: list[tuple[IPAddress, int, Protocol]] = []
 
-    lines = data.splitlines()
+    lines = http_result.text.splitlines()
     for line in lines:
         parse_result = try_parse_ip_port(line)
         if not parse_result:
