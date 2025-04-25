@@ -230,4 +230,5 @@ async def fetch_proxies() -> None:
                 },
             )
 
-        await proxy_service.create_bulk(proxies)
+        if proxies:
+            await proxy_service.create_bulk(proxies)
