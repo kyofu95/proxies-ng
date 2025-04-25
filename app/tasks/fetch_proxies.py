@@ -199,12 +199,14 @@ async def fetch_proxies() -> None:
         sources = await uow.source_repository.get_all()
 
     if not sources:
+        logger.debug("No proxy sources were found")
         return
 
     geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
 
     unchecked_proxies = await fetch_all_proxy_lists(sources)
     if not unchecked_proxies:
+        logger.debug("No valid proxies found in proxy sources")
         return
 
     proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
