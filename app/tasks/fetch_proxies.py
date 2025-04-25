@@ -11,7 +11,7 @@ from app.models.proxy import Protocol
 from app.models.source import Source
 from app.service.proxy import InitialHealth, ProxyService
 
-from .check_proxies import check_proxy_with_aws
+from .utils.aws_check import check_proxy_with_aws
 from .utils.network_request import HTTP_STATUS_OK, try_http_request
 
 type IPAddress = IPv4Address | IPv6Address
