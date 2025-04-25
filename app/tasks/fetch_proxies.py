@@ -187,14 +187,10 @@ async def check_list_of_proxies(
 
 async def fetch_proxies() -> None:
     """
-    Fetch and store proxies from all predefined proxy sources in the database.
+    Fetch, validate, and store publicly available proxies from various sources.
 
-    This function:
-    - Fetches all proxy sources from the database.
-    - Downloads proxy lists from each source.
-    - Validates each proxy via AWS checks.
-    - Enriches valid proxies with geolocation.
-    - Persists valid and public proxies in bulk.
+    This includes downloading raw proxy lists, validating them using AWS checks,
+    determining geolocation, and saving valid entries into the database.
     """
     # TODO(sny): split function into smaller functions
     session_factory = create_session_factory()
