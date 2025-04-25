@@ -113,6 +113,10 @@ async def download_proxy_list(
         if not parse_result:
             continue
 
+        # we need only public ip's
+        if not parse_result[0].is_global:
+            continue
+
         proxies.append((*parse_result, protocol))
 
     return proxies
@@ -221,10 +225,6 @@ async def fetch_proxies() -> None:
         proxies: list[dict[str, Any]] = []
 
         for ip, port, protocol, latency, last_tested in checked_proxies:
-            # we need only public ip's
-            if not ip.is_global:
-                continue
-
             location = geoip_service.get_geolocation(ip)
             if not location:
                 continue
