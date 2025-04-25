@@ -226,7 +226,7 @@ async def fetch_proxies() -> None:
 
         for ip, port, protocol, latency, last_tested in checked_proxies:
             # we need only public ip's
-            if ip.is_private or ip.is_reserved:
+            if not ip.is_global:
                 continue
 
             location = geoip_service.get_geolocation(ip)
