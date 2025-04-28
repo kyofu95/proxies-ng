@@ -55,7 +55,7 @@ async def check_proxies() -> None:
 
     proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
 
-    proxies = await proxy_service.get_proxies(sort_by_unchecked=True)
+    proxies = await proxy_service.get_proxies(sort_by_unchecked=True, limit=300)
 
     tasks = [check_single_proxy(proxy) for proxy in proxies]
 
