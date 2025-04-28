@@ -2,7 +2,7 @@ from ipaddress import IPv4Address, IPv6Address
 
 import pytest
 
-from app.tasks.check_proxies import HTTP_STATUS_OK, Protocol, ProxyHttpResult, format_proxy_url, validate_aws_response
+from app.tasks.utils.aws_check import HTTP_STATUS_OK, Protocol, ProxyHttpResult, format_proxy_url, validate_aws_response
 
 
 @pytest.mark.unit
