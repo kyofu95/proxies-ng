@@ -125,6 +125,17 @@ class ProxyService:
         async with self.uow as uow:
             return await uow.proxy_repository.update(proxy)
 
+    async def update_bulk(self, proxies: list[Proxy], *, only_health: bool = False) -> None:
+        """
+        Update multiple proxy entities at once.
+
+        Args:
+            proxies (list[Proxy]): A list of proxies to update.
+            only_health (bool, optional): If True, update only health-related fields. Defaults to False.
+        """
+        async with self.uow as uow:
+            await uow.proxy_repository.update_bulk(proxies, only_health=only_health)
+
     async def remove(self, proxy: Proxy) -> None:
         """
         Remove a proxy entity from the database.

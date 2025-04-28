@@ -271,6 +271,22 @@ async def test_proxy_repository_add_bulk(db_session_factory: async_sessionmaker[
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
+async def test_proxy_repository_update_bulk(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        proxies = [make_proxy() for _ in range(3)]
+        await uow.proxy_repository.add_bulk(proxies)
+
+        for proxy in proxies:
+            proxy.health.failed_conn_attemps += 1
+
+        await uow.proxy_repository.update_bulk(proxies)
+
+        proxy = await uow.proxy_repository.get_by_id(proxies[0].id)
+        assert proxy.health.failed_conn_attemps > 0
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_get_country_by_code(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
     async with SQLUnitOfWork(db_session_factory) as uow:
         country = await uow.proxy_repository.get_country_by_code("US")

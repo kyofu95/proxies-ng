@@ -160,3 +160,16 @@ async def test_create_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
     assert proxies[1].address == mock_proxy_2.address
     assert proxies[1].port == mock_proxy_2.port
     assert proxies[1].protocol == mock_proxy_2.protocol
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio(loop_scope="module")
+async def test_update_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
+    proxy1 = Proxy()
+    proxy2 = Proxy()
+
+    proxies = [proxy1, proxy2]
+
+    await service.update_bulk(proxies, only_health=True)
+
+    mock_uow.proxy_repository.update_bulk.assert_called_once_with(proxies, only_health=True)

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import and_, distinct, func, insert, select
+from sqlalchemy import and_, distinct, func, insert, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -100,6 +100,28 @@ class ProxyRepository(BaseRepository[Proxy]):
         await self.session.merge(entity)
 
         return entity
+
+    async def update_bulk(self, entities: list[Proxy], *, only_health: bool = False) -> None:
+        """
+        Bulk update multiple Proxy entities and/or their associated ProxyHealth records.
+
+        If 'only_health' is True, only the ProxyHealth records are updated.
+        Otherwise, both Proxy and ProxyHealth records are updated.
+
+        Args:
+            entities (list[Proxy]): A list of Proxy entities to update.
+            only_health (bool): If True, update only ProxyHealth records. Defaults to False.
+        """
+        if not only_health:
+            proxy_values = [proxy.to_dict() for proxy in entities]
+
+            stmt = update(Proxy)
+            await self.session.execute(stmt, proxy_values)
+
+        proxy_health_values = [proxy.health.to_dict() for proxy in entities]
+
+        stmt = update(ProxyHealth)
+        await self.session.execute(stmt, proxy_health_values)
 
     async def remove(self, entity: Proxy) -> None:
         """
