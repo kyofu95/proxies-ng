@@ -8,6 +8,8 @@ from fastapi.staticfiles import StaticFiles
 from app.api.api import api_router
 from app.views.pages import router as pages_router
 
+from .error_handlers import install_exception_handlers
+
 BASE_PATH = Path(__file__).resolve().parent
 
 
@@ -55,6 +57,8 @@ def create_app() -> FastAPI:
 
     api.include_router(pages_router)
     api.include_router(api_router)
+
+    install_exception_handlers(api)
 
     return api
 
