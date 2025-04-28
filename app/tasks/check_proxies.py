@@ -64,6 +64,4 @@ async def check_proxies() -> None:
     # filter out exceptions
     checked_proxies = [proxy for proxy in values if not isinstance(proxy, BaseException)]
 
-    # TODO(sny): one single commit
-    for proxy in checked_proxies:
-        await proxy_service.update(proxy)
+    await proxy_service.update_bulk(checked_proxies, only_health=True)
