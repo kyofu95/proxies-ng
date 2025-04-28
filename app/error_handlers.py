@@ -1,5 +1,8 @@
-from fastapi import FastAPI, HTTPException, Request
+import typing
+
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
+from starlette.types import ExceptionHandler as StarletteExceptionHandler
 
 from .views.pages import templates
 
@@ -29,7 +32,7 @@ async def not_found_exception_handler(request: Request, _: HTTPException) -> JSO
 
     # if web interface, return 404 web page
     context = {"request": request}
-    return templates.TemplateResponse("404.html", context=context)
+    return templates.TemplateResponse("404.html", context=context, status_code=status.HTTP_404_NOT_FOUND)
 
 
 def install_exception_handlers(api: FastAPI) -> None:
@@ -42,4 +45,8 @@ def install_exception_handlers(api: FastAPI) -> None:
     Returns:
         None
     """
-    api.add_exception_handler(404, not_found_exception_handler)
+    # i give up. i have no idea what type is StarletteExceptionHandler, so i simply cast to it
+    api.add_exception_handler(
+        status.HTTP_404_NOT_FOUND,
+        typing.cast(StarletteExceptionHandler, not_found_exception_handler),
+    )
