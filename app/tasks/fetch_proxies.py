@@ -37,6 +37,10 @@ def validate_port(port: int) -> None:
         raise ValueError("Valid port range is [1; 65535]")
 
 
+SCHEME_IP_PORT_LENGTH = 2  #  ip:port
+SCHEME_PROTOCOL_IOP_PORT_LENGTH = 3  #  protocol://ip:port
+
+
 def try_parse_ip_port(proxy_line: str) -> tuple[IPAddress, int] | None:
     """
     Attempt to parse a proxy string in the format IP:PORT or protocol://IP:PORT.
@@ -54,9 +58,9 @@ def try_parse_ip_port(proxy_line: str) -> tuple[IPAddress, int] | None:
         substrings = proxy_line.split(":")
         parts_length = len(substrings)
 
-        if parts_length == 2:
+        if parts_length == SCHEME_IP_PORT_LENGTH:
             ip_str, port_str = substrings
-        elif parts_length == 3:
+        elif parts_length == SCHEME_PROTOCOL_IOP_PORT_LENGTH:
             _, ip_str, port_str = substrings  # omit protocol
             ip_str = ip_str.lstrip("/")
         else:
