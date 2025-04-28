@@ -28,7 +28,7 @@ async def not_found_exception_handler(request: Request, _: HTTPException) -> JSO
     if api_index != -1:
         # if api, return json response
         content = {"detail": "Not Found"}
-        return JSONResponse(content)
+        return JSONResponse(content, status_code=status.HTTP_404_NOT_FOUND)
 
     # if web interface, return 404 web page
     context = {"request": request}
