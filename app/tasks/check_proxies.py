@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import logging
 
@@ -8,6 +7,7 @@ from app.models.proxy import Proxy
 from app.service.proxy import ProxyService
 
 from .utils.aws_check import check_proxy_with_aws
+from .utils.gather import cgather
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +59,6 @@ async def check_proxies() -> None:
 
     tasks = [check_single_proxy(proxy) for proxy in proxies]
 
-    values = await asyncio.gather(*tasks, return_exceptions=True)
-
-    # filter out exceptions
-    checked_proxies = [proxy for proxy in values if not isinstance(proxy, BaseException)]
+    checked_proxies = await cgather(*tasks, limit=50)
 
     await proxy_service.update_bulk(checked_proxies, only_health=True)

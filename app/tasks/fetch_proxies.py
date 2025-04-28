@@ -12,6 +12,7 @@ from app.models.source import Source
 from app.service.proxy import InitialHealth, ProxyService
 
 from .utils.aws_check import check_proxy_with_aws
+from .utils.gather import cgather
 from .utils.network_request import HTTP_STATUS_OK, try_http_request
 
 type IPAddress = IPv4Address | IPv6Address
@@ -163,8 +164,8 @@ async def fetch_all_proxy_lists(sources: list[Source]) -> list[tuple[IPAddress, 
 
 
 async def check_list_of_proxies(
-    proxies: list[tuple[IPv4Address | IPv6Address, int, Protocol]],
-) -> list[tuple[IPv4Address | IPv6Address, int, Protocol, int, datetime.datetime]]:
+    proxies: list[tuple[IPAddress, int, Protocol]],
+) -> list[tuple[IPAddress, int, Protocol, int, datetime.datetime]]:
     """
     Asynchronously check a list of proxies for availability and latency.
 
@@ -176,8 +177,7 @@ async def check_list_of_proxies(
             A list of successfully validated proxies with latency and test time.
     """
     check_tasks = [check_proxy((proxy[0], proxy[1]), proxy[2]) for proxy in proxies]
-    check_tasks_results = await asyncio.gather(*check_tasks, return_exceptions=True)
-    return [proxy for proxy in check_tasks_results if proxy and not isinstance(proxy, BaseException)]
+    return await cgather(*check_tasks, limit=50)
 
 
 async def fetch_proxies() -> None:
