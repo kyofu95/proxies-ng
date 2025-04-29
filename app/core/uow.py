@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.repository.proxy import ProxyRepository
 from app.repository.source import SourceRepository
+from app.repository.user import UserRepository
 
 from .exceptions import BaseError, DatabaseError
 
@@ -45,6 +46,7 @@ class SQLUnitOfWork:
         self.session = self.session_factory()
         self.proxy_repository = ProxyRepository(self.session)
         self.source_repository = SourceRepository(self.session)
+        self.user_repository = UserRepository(self.session)
         return self
 
     async def __aexit__(
