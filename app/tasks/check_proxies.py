@@ -59,6 +59,17 @@ async def check_proxies() -> None:
 
     tasks = [check_single_proxy(proxy) for proxy in proxies]
 
-    checked_proxies = await cgather(*tasks, limit=50)
+    proxies = await cgather(*tasks, limit=50)
+
+    checked_proxies: list[Proxy] = []
+
+    for proxy in proxies:
+        if (
+            proxy.health.total_conn_attemps > 6
+            and proxy.health.total_conn_attemps - proxy.health.failed_conn_attemps <= 3
+        ):
+            await proxy_service.remove(proxy)
+            continue
+        checked_proxies.append(proxy)
 
     await proxy_service.update_bulk(checked_proxies, only_health=True)
