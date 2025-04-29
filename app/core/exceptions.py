@@ -38,3 +38,11 @@ class CountryCodeError(BaseError):
     This exception should be used to indicate issues related to country code
     validation, normalization, or lookup operations.
     """
+
+class HashingError(BaseError):
+    """
+    Exception raised for errors during password or data hashing operations.
+
+    This exception should be used when hashing fails due to configuration issues,
+    unsupported algorithms, or unexpected input data.
+    """
