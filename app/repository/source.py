@@ -1,10 +1,10 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
-from app.models.source import Source
+from app.models.source import Source, SourceHealth
 
 from .base import BaseRepository
 
@@ -95,7 +95,13 @@ class SourceRepository(BaseRepository[Source]):
                 "Entity has not been stored in database, but were marked for update.",
             )
 
-        await self.session.flush([entity])
+        stmt = update(Source).where(Source.id == entity.id).values(entity.to_dict())
+        await self.session.execute(stmt)
+
+        if entity.health:
+            stmt = update(SourceHealth).where(SourceHealth.id == entity.health.id).values(entity.health.to_dict())
+            await self.session.execute(stmt)
+
         await self.session.refresh(entity)
 
         return entity
