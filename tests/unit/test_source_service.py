@@ -9,7 +9,7 @@ from app.models.source import Source, SourceType
 from app.service.source import SourceService
 
 
-@pytest_asyncio.fixture(loop_scope="module", scope="module")
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
 async def mock_uow() -> AsyncMock:
     uow = AsyncMock(SQLUnitOfWork)
     uow.__aenter__.return_value = uow
@@ -18,7 +18,7 @@ async def mock_uow() -> AsyncMock:
     return uow
 
 
-@pytest_asyncio.fixture(loop_scope="module", scope="module")
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
 async def service(mock_uow: AsyncMock) -> SourceService:
     return SourceService(mock_uow)
 

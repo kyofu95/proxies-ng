@@ -10,7 +10,7 @@ from app.models.proxy import Protocol, Proxy
 from app.service.proxy import Location, ProxyService
 
 
-@pytest_asyncio.fixture(loop_scope="module", scope="module")
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
 async def mock_uow() -> AsyncMock:
     uow = AsyncMock(SQLUnitOfWork)
     uow.__aenter__.return_value = uow
@@ -19,13 +19,13 @@ async def mock_uow() -> AsyncMock:
     return uow
 
 
-@pytest_asyncio.fixture(loop_scope="module", scope="module")
+@pytest_asyncio.fixture(loop_scope="function", scope="function")
 async def service(mock_uow: AsyncMock) -> ProxyService:
     return ProxyService(mock_uow)
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_create_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
     proxy_id = uuid4()
     address = IPv4Address("192.168.1.1")
@@ -48,7 +48,7 @@ async def test_create_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_get_by_id(service: ProxyService, mock_uow: AsyncMock) -> None:
     proxy_id = uuid4()
     mock_proxy = Proxy()
@@ -62,7 +62,7 @@ async def test_get_by_id(service: ProxyService, mock_uow: AsyncMock) -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_update_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
     mock_proxy = Proxy()
     mock_uow.proxy_repository.update.return_value = mock_proxy
@@ -74,7 +74,7 @@ async def test_update_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_remove_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
     mock_proxy = Proxy()
 
@@ -84,7 +84,7 @@ async def test_remove_proxy(service: ProxyService, mock_uow: AsyncMock) -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_get_proxies(service: ProxyService, mock_uow: AsyncMock) -> None:
     await service.get_proxies()
 
@@ -92,14 +92,14 @@ async def test_get_proxies(service: ProxyService, mock_uow: AsyncMock) -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_get_proxies_exception(service: ProxyService, mock_uow: AsyncMock) -> None:
     with pytest.raises(ValueError):
         await service.get_proxies(sort_by_unchecked=True, only_checked=True)
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_proxies_count(service: ProxyService, mock_uow: AsyncMock) -> None:
     await service.get_proxies_count()
 
@@ -107,7 +107,7 @@ async def test_proxies_count(service: ProxyService, mock_uow: AsyncMock) -> None
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_get_countries(service: ProxyService, mock_uow: AsyncMock) -> None:
     await service.get_countries()
 
@@ -115,7 +115,7 @@ async def test_get_countries(service: ProxyService, mock_uow: AsyncMock) -> None
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_create_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
     proxy_data_1 = {
         "address": IPv4Address("192.168.1.1"),
@@ -163,7 +163,7 @@ async def test_create_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
 
 
 @pytest.mark.unit
-@pytest.mark.asyncio(loop_scope="module")
+@pytest.mark.asyncio
 async def test_update_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
     proxy1 = Proxy()
     proxy2 = Proxy()
