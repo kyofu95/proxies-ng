@@ -11,6 +11,7 @@ from app.models.base import Base
 from app.models.country import Country
 from app.models.proxy import Proxy
 from app.models.source import Source
+from app.models.user import User
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
