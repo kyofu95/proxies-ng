@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime as SA_DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -23,11 +23,11 @@ class User(Base):
     login: Mapped[str] = mapped_column(index=True, unique=True)
     password: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
+        SA_DateTime(timezone=True),
         default=datetime.now(timezone.utc),
     )
     updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True),
+        SA_DateTime(timezone=True),
         default=datetime.now(timezone.utc),
         onupdate=datetime.now(timezone.utc),
     )
