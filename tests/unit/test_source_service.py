@@ -23,6 +23,7 @@ async def service(mock_uow: AsyncMock) -> SourceService:
     return SourceService(mock_uow)
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_create_source(service: SourceService, mock_uow: AsyncMock) -> None:
     source_id = uuid4()
@@ -44,6 +45,7 @@ async def test_create_source(service: SourceService, mock_uow: AsyncMock) -> Non
     assert result == mock_source
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_get_by_id(service: SourceService, mock_uow: AsyncMock) -> None:
     source_id = uuid4()
@@ -57,6 +59,7 @@ async def test_get_by_id(service: SourceService, mock_uow: AsyncMock) -> None:
     assert result == mock_source
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_get_by_name(service: SourceService, mock_uow: AsyncMock) -> None:
     source_name = "name"
@@ -70,6 +73,7 @@ async def test_get_by_name(service: SourceService, mock_uow: AsyncMock) -> None:
     assert result == mock_source
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_update_source(service: SourceService, mock_uow: AsyncMock) -> None:
     mock_source = Source()
@@ -81,6 +85,7 @@ async def test_update_source(service: SourceService, mock_uow: AsyncMock) -> Non
     assert result == mock_source
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_remove_source(service: SourceService, mock_uow: AsyncMock) -> None:
     mock_source = Source()
