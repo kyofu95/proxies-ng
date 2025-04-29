@@ -29,8 +29,8 @@ async def init_countries() -> None:
     Uses the pycountry library to retrieve all ISO 3166 countries
     and inserts them using ON CONFLICT DO NOTHING to avoid duplicates.
 
-    Args:
-        uow (SQLUnitOfWork): The unit of work used for database interaction.
+    Returns:
+        None
     """
     logger.info("Initializing database lookup tables")
     session_factory = create_session_factory()
