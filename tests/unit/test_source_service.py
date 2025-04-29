@@ -8,6 +8,7 @@ from app.core.uow import SQLUnitOfWork
 from app.models.source import Source, SourceType
 from app.service.source import SourceService
 
+
 @pytest_asyncio.fixture(loop_scope="module", scope="module")
 async def mock_uow() -> AsyncMock:
     uow = AsyncMock(SQLUnitOfWork)
@@ -38,7 +39,7 @@ async def test_create_source(service: SourceService, mock_uow: AsyncMock) -> Non
 
     mock_uow.source_repository.add.return_value = mock_source
     result = await service.create(name, uri)
-    
+
     mock_uow.source_repository.add.assert_called_once()
     assert result == mock_source
 
@@ -51,9 +52,10 @@ async def test_get_by_id(service: SourceService, mock_uow: AsyncMock) -> None:
 
     mock_uow.source_repository.get_by_id.return_value = mock_source
     result = await service.get_by_id(source_id)
-    
+
     mock_uow.source_repository.get_by_id.assert_called_once_with(source_id)
     assert result == mock_source
+
 
 @pytest.mark.asyncio
 async def test_get_by_name(service: SourceService, mock_uow: AsyncMock) -> None:
@@ -63,7 +65,7 @@ async def test_get_by_name(service: SourceService, mock_uow: AsyncMock) -> None:
 
     mock_uow.source_repository.get_by_name.return_value = mock_source
     result = await service.get_by_name(source_name)
-    
+
     mock_uow.source_repository.get_by_name.assert_called_once_with(source_name)
     assert result == mock_source
 
@@ -74,7 +76,7 @@ async def test_update_source(service: SourceService, mock_uow: AsyncMock) -> Non
     mock_uow.source_repository.update.return_value = mock_source
 
     result = await service.update(mock_source)
-    
+
     mock_uow.source_repository.update.assert_called_once_with(mock_source)
     assert result == mock_source
 
@@ -84,5 +86,5 @@ async def test_remove_source(service: SourceService, mock_uow: AsyncMock) -> Non
     mock_source = Source()
 
     await service.remove(mock_source)
-    
+
     mock_uow.source_repository.remove.assert_called_once_with(mock_source)
