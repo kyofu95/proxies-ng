@@ -83,6 +83,33 @@ async def test_get_by_login(service: UserService, mock_uow: AsyncMock):
     mock_uow.user_repository.get_by_login.assert_called_once_with(login)
     assert result == user
 
+@pytest.mark.unit
+@pytest.mark.asyncio
+@patch("app.service.user.Hasher.hash", return_value="hashed_password")
+async def test_get_by_login_with_auth(mock_hash, service: UserService, mock_uow: AsyncMock):
+    login = "aaabbbccc"
+    password = "hashed_password"
+    user = User(id=uuid4(), login=login, password=password)
+    mock_uow.user_repository.get_by_login.return_value = user
+
+    result = await service.get_by_login_with_auth(login, password)
+
+    mock_uow.user_repository.get_by_login.assert_called_once_with(login)
+    assert result == user
+    mock_hash.assert_called_once_with(password)
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_get_by_login_with_auth_no_user(service: UserService, mock_uow: AsyncMock):
+    login = "111222333"
+    password = "plain_password"
+    mock_uow.user_repository.get_by_login.return_value = None
+
+    result = await service.get_by_login_with_auth(login, password)
+
+    mock_uow.user_repository.get_by_login.assert_called_once_with(login)
+    assert result is None
+
 
 @pytest.mark.unit
 @pytest.mark.asyncio

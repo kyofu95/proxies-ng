@@ -76,6 +76,34 @@ class UserService:
         async with self.uow as uow:
             return await uow.user_repository.get_by_login(login)
 
+    async def get_by_login_with_auth(self, login: str, plain_password: str) -> User | None:
+        """
+        Retrieve a user by login and verify their password.
+
+        This method fetches the user by login and compares the hashed password
+        against the provided plaintext password. Returns the user if authentication
+        is successful; otherwise, returns None.
+
+        Args:
+            login (str): The login of the user.
+            plain_password (str): The plaintext password to verify.
+
+        Returns:
+            User | None: The authenticated user if credentials match, otherwise None.
+        """
+        async with self.uow as uow:
+            user = await uow.user_repository.get_by_login(login)
+
+        if not user:
+            return None
+
+        # check if password match
+        encoded_password = Hasher.hash(plain_password)
+        if user.password != encoded_password:
+            return None
+
+        return user
+
     async def update(self, user: User) -> User:
         """
         Update an existing user in the database.
