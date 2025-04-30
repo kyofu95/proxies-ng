@@ -65,13 +65,16 @@ class CelerySettings(RedisSettings):
 
     broker: str = Field(alias="CELERY_BROKER_DRIVER", default="redis")
     host: str = Field(
-        alias="CELERY_BROKER_HOST", description="The broker host. Defaults to REDIS_HOST if not explicitly set.",
+        alias="CELERY_BROKER_HOST",
+        description="The broker host. Defaults to REDIS_HOST if not explicitly set.",
     )
     port: int = Field(
-        alias="CELERY_BROKER_PORT", description="The broker port. Defaults to REDIS_PORT if not explicitly set.",
+        alias="CELERY_BROKER_PORT",
+        description="The broker port. Defaults to REDIS_PORT if not explicitly set.",
     )
     user: str = Field(
-        alias="CELERY_BROKER_USER", description="The broker user. Defaults to REDIS_USER if not explicitly set.",
+        alias="CELERY_BROKER_USER",
+        description="The broker user. Defaults to REDIS_USER if not explicitly set.",
     )
     password: str = Field(
         alias="CELERY_BROKER_PASSWORD",
@@ -113,3 +116,23 @@ class CelerySettings(RedisSettings):
 
 
 celery_settings = CelerySettings()
+
+
+class JWTSettings(BaseSettings):
+    """
+    Configuration settings for JWT encoding and decoding.
+
+    Attributes:
+        secret_key (str): The secret key used to sign and verify the JWT.
+        algorithm (str): The cryptographic algorithm used for encoding the JWT. Defaults to "HS256".
+        access_token_expiry (int): The time in minutes before the access token expires. Defaults to 30 minutes.
+    """
+
+    secret_key: str = Field(alias="JWT_SECRET_KEY")
+    algorithm: str = "HS256"
+    access_token_expiry: int = 30  # 30 minutes
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+
+jwt_settings = JWTSettings()
