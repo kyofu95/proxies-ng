@@ -37,7 +37,9 @@ async def test_hasher_verify_wrong_password() -> None:
     assert Hasher.verify(hashed, plaintext_wrong) == False
 
 
-def test_haser_raises_hashing_error(monkeypatch):
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_haser_raises_hashing_error(monkeypatch):
     from argon2 import PasswordHasher
 
     def broken_hash(self, password):
@@ -48,7 +50,9 @@ def test_haser_raises_hashing_error(monkeypatch):
         Hasher.hash("password")
 
 
-def test_hasher_verify_raises_hashing_error_on_invalid_hash(monkeypatch):
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_hasher_verify_raises_hashing_error_on_invalid_hash(monkeypatch):
     from argon2 import PasswordHasher
 
     def broken_verify(self, hash, password):
@@ -59,7 +63,9 @@ def test_hasher_verify_raises_hashing_error_on_invalid_hash(monkeypatch):
         Hasher.verify("invalid_hash", "password")
 
 
-def test_hasher_verify_raises_hashing_error_on_generic_argon2(monkeypatch):
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_hasher_verify_raises_hashing_error_on_generic_argon2(monkeypatch):
     from argon2 import PasswordHasher
 
     def broken_verify(self, hash, password):
