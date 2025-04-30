@@ -14,6 +14,7 @@ class NotFoundError(BaseError):
     the specified resource could not be located.
     """
 
+
 class AlreadyExistsError(BaseError):
     """
     Exception raised when attempting to create a resource that already exists.
@@ -31,6 +32,7 @@ class DatabaseError(BaseError):
     with the database, such as connection failures or query issues.
     """
 
+
 class CountryCodeError(BaseError):
     """
     Exception raised when an invalid or unsupported country code is encountered.
@@ -39,10 +41,20 @@ class CountryCodeError(BaseError):
     validation, normalization, or lookup operations.
     """
 
+
 class HashingError(BaseError):
     """
     Exception raised for errors during password or data hashing operations.
 
     This exception should be used when hashing fails due to configuration issues,
     unsupported algorithms, or unexpected input data.
+    """
+
+
+class TokenError(BaseError):
+    """
+    Exception raised for errors related to JWT token creation or validation.
+
+    This exception should be used when token encoding, decoding, or validation
+    fails due to expiration, tampering, or incorrect format.
     """

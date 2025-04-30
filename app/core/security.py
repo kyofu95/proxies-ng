@@ -1,7 +1,14 @@
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
 from argon2 import PasswordHasher
 from argon2.exceptions import Argon2Error, InvalidHashError, VerifyMismatchError
+from jwt import decode as jwt_decode
+from jwt import encode as jwt_encode
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWTError
 
-from .exceptions import HashingError
+from .config import jwt_settings
+from .exceptions import HashingError, TokenError
 
 hasher = PasswordHasher()
 
@@ -54,3 +61,77 @@ class Hasher:
             return False
         except (Argon2Error, InvalidHashError) as exc:
             raise HashingError("Failed to verify password") from exc
+
+
+class Token:
+    """
+    Utility class for encoding and decoding JWT tokens.
+
+    This class provides static methods to generate and validate JSON Web Tokens (JWT)
+    for user authentication, using the configured secret key and algorithm.
+    """
+
+    @staticmethod
+    def encode(user_id: str) -> str:
+        """
+        Create a JWT access token for the given user ID.
+
+        The token includes an expiration (`exp`), issued at (`iat`), and subject (`sub`) claim.
+
+        Args:
+            user_id (str): The ID of the user for whom the token is being created.
+
+        Raises:
+            TokenError: If encoding the token fails due to a JWT error.
+
+        Returns:
+            str: The encoded JWT token as a string.
+        """
+        delta = timedelta(minutes=jwt_settings.access_token_expiry)
+
+        payload = {
+            "exp": datetime.now(timezone.utc) + delta,
+            "iat": datetime.now(timezone.utc),
+            "sub": str(user_id),
+        }
+
+        try:
+            token = jwt_encode(payload=payload, key=jwt_settings.secret_key, algorithm=jwt_settings.algorithm)
+        except PyJWTError as exc:
+            raise TokenError("Token encode failure") from exc
+
+        return token
+
+    @staticmethod
+    def decode(token: str) -> str:
+        """
+        Decode a JWT token and extract the user ID.
+
+        Args:
+            token (str): The JWT token to decode.
+
+        Raises:
+            TokenError: If the token is empty, expired, invalid, or lacks a user ID.
+
+        Returns:
+            str: The user ID extracted from the token.
+        """
+        if not token:
+            raise TokenError("Token is empty")
+
+        try:
+            payload: dict[str, Any] = jwt_decode(
+                jwt=token,
+                key=jwt_settings.secret_key,
+                algorithms=[jwt_settings.algorithm],
+            )
+        except ExpiredSignatureError as exc:
+            raise TokenError("Expired token signature") from exc
+        except InvalidTokenError as exc:
+            raise TokenError("Invalid token") from exc
+
+        user_id = payload.get("sub")
+        if not user_id:
+            raise TokenError("Invalid token payload")
+
+        return user_id
