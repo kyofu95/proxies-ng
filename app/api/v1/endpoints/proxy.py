@@ -6,7 +6,7 @@ from pydantic import TypeAdapter
 from app.models.proxy import Protocol
 
 from .schemas.proxy import PaginatedProxyResponse, ProxyResponse
-from .utils.di_deps import ProxyServiceDep
+from .utils.dependencies import ProxyServiceDep
 
 router = APIRouter(prefix="/proxy", tags=["Proxy"])
 

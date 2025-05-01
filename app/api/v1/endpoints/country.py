@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from .utils.di_deps import ProxyServiceDep
+from .utils.dependencies import ProxyServiceDep
 
 router = APIRouter(prefix="/country", tags=["country"])
 
