@@ -63,7 +63,7 @@ class PasswordHasher:
             raise HashingError("Failed to verify password") from exc
 
 
-class Token:
+class JWT:
     """
     Utility class for encoding and decoding JWT tokens.
 

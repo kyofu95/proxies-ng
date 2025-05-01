@@ -5,7 +5,7 @@ from argon2.exceptions import Argon2Error, InvalidHashError
 from jwt import encode as jwt_encode
 
 from app.core.exceptions import HashingError
-from app.core.security import PasswordHasher, Token, TokenError
+from app.core.security import PasswordHasher, JWT, TokenError
 
 
 @pytest.mark.unit
@@ -81,32 +81,32 @@ async def test_password_hasher_verify_raises_hashing_error_on_generic_argon2(mon
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_token_encode_valid(monkeypatch):
+async def test_jwt_encode_valid(monkeypatch):
     user_id = "user123"
-    token = Token.encode(user_id)
+    token = JWT.encode(user_id)
     assert isinstance(token, str)
 
-    decoded_id = Token.decode(token)
+    decoded_id = JWT.decode(token)
     assert decoded_id == user_id
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_token_decode_invalid(monkeypatch):
+async def test_jwt_decode_invalid(monkeypatch):
     with pytest.raises(TokenError, match="Invalid token"):
-        Token.decode("not.a.valid.token")
+        JWT.decode("not.a.valid.token")
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_token_decode_empty():
+async def test_jwt_decode_empty():
     with pytest.raises(TokenError, match="Token is empty"):
-        Token.decode("")
+        JWT.decode("")
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_token_decode_expired(monkeypatch):
+async def test_jwt_decode_expired(monkeypatch):
     expired_payload = {
         "sub": "user123",
         "iat": datetime(2000, 1, 1, tzinfo=timezone.utc) - timedelta(minutes=10),
@@ -119,15 +119,15 @@ async def test_token_decode_expired(monkeypatch):
 
     monkeypatch.setattr("app.core.security.jwt_encode", patched_encode)
 
-    expired_token = Token.encode("user123")
+    expired_token = JWT.encode("user123")
 
     with pytest.raises(TokenError, match="Expired token signature"):
-        Token.decode(expired_token)
+        JWT.decode(expired_token)
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_token_decode_missing_sub(monkeypatch):
+async def test_jwt_decode_missing_sub(monkeypatch):
     payload_missing = {
         "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
         "iat": datetime.now(timezone.utc),
@@ -140,7 +140,7 @@ async def test_token_decode_missing_sub(monkeypatch):
 
     monkeypatch.setattr("app.core.security.jwt_encode", patched_encode)
 
-    token = Token.encode("user123")
+    token = JWT.encode("user123")
 
     with pytest.raises(TokenError, match="Invalid token payload"):
-        Token.decode(token)
+        JWT.decode(token)
