@@ -5,6 +5,7 @@ from fastapi import Depends
 from app.core.database import async_session_factory
 from app.core.uow import SQLUnitOfWork
 from app.service.proxy import ProxyService
+from app.service.user import UserService
 
 
 def get_proxy_service() -> ProxyService:
@@ -23,3 +24,21 @@ def get_proxy_service() -> ProxyService:
 
 ProxyServiceDep = Annotated[ProxyService, Depends(get_proxy_service)]
 """Dependency for providing an instance of ProxyService."""
+
+
+def get_user_service() -> UserService:
+    """
+    Dependency function that provides an instance of UserService.
+
+    Creates a new SQLUnitOfWork using the async session factory
+    and returns a UserService that uses this UoW.
+
+    Returns:
+        UserService: An instance of UserService with a unit of work.
+    """
+    uow = SQLUnitOfWork(async_session_factory)
+    return UserService(uow)
+
+
+UserServiceDep = Annotated[UserService, Depends(get_user_service)]
+"""Dependency for providing an instance of UserService."""
