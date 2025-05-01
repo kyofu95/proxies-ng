@@ -134,4 +134,4 @@ class Token:
         if not user_id:
             raise TokenError("Invalid token payload")
 
-        return user_id
+        return str(user_id)
