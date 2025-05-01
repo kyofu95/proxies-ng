@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from argon2 import PasswordHasher
+from argon2 import PasswordHasher as Argon2Hasher
 from argon2.exceptions import Argon2Error, InvalidHashError, VerifyMismatchError
 from jwt import decode as jwt_decode
 from jwt import encode as jwt_encode
@@ -10,10 +10,10 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWTError
 from .config import jwt_settings
 from .exceptions import HashingError, TokenError
 
-hasher = PasswordHasher()
+hasher = Argon2Hasher()
 
 
-class Hasher:
+class PasswordHasher:
     """
     Utility class for password hashing and verification using Argon2.
 

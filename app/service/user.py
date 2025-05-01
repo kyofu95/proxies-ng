@@ -1,7 +1,7 @@
 from uuid import UUID, uuid4
 
 from app.core.exceptions import AlreadyExistsError
-from app.core.security import Hasher
+from app.core.security import PasswordHasher
 from app.core.uow import SQLUnitOfWork
 from app.models.user import User
 
@@ -44,7 +44,7 @@ class UserService:
         if existing_user:
             raise AlreadyExistsError("User with the same login already exist")
 
-        hashed_password = Hasher.hash(password)
+        hashed_password = PasswordHasher.hash(password)
         user = User(id=uuid4(), login=login, password=hashed_password)
 
         async with self.uow as uow:
@@ -98,7 +98,7 @@ class UserService:
             return None
 
         # check if password match
-        encoded_password = Hasher.hash(plain_password)
+        encoded_password = PasswordHasher.hash(plain_password)
         if user.password != encoded_password:
             return None
 

@@ -5,15 +5,15 @@ from argon2.exceptions import Argon2Error, InvalidHashError
 from jwt import encode as jwt_encode
 
 from app.core.exceptions import HashingError
-from app.core.security import Hasher, Token, TokenError
+from app.core.security import PasswordHasher, Token, TokenError
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_hasher_hash() -> None:
+async def test_password_hasher_hash() -> None:
     plaintext = "abc"
 
-    hashed = Hasher.hash(plaintext)
+    hashed = PasswordHasher.hash(plaintext)
     assert hashed
     assert isinstance(hashed, str)
     assert hashed != plaintext
@@ -21,62 +21,62 @@ async def test_hasher_hash() -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_hasher_verify() -> None:
+async def test_password_hasher_verify() -> None:
     plaintext = "abc"
 
-    hashed = Hasher.hash(plaintext)
+    hashed = PasswordHasher.hash(plaintext)
 
-    assert Hasher.verify(hashed, plaintext) == True
+    assert PasswordHasher.verify(hashed, plaintext) == True
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_hasher_verify_wrong_password() -> None:
+async def test_password_hasher_verify_wrong_password() -> None:
     plaintext = "abc"
     plaintext_wrong = "xyz"
 
-    hashed = Hasher.hash(plaintext)
+    hashed = PasswordHasher.hash(plaintext)
 
-    assert Hasher.verify(hashed, plaintext_wrong) == False
+    assert PasswordHasher.verify(hashed, plaintext_wrong) == False
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_haser_raises_hashing_error(monkeypatch):
-    from argon2 import PasswordHasher
+async def test_password_hasher_raises_hashing_error(monkeypatch):
+    from argon2 import PasswordHasher as Argon2Hasher
 
     def broken_hash(self, password):
         raise Argon2Error("something went wrong")
 
-    monkeypatch.setattr(PasswordHasher, "hash", broken_hash)
+    monkeypatch.setattr(Argon2Hasher, "hash", broken_hash)
     with pytest.raises(HashingError, match="Failed to hash password"):
-        Hasher.hash("password")
+        PasswordHasher.hash("password")
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_hasher_verify_raises_hashing_error_on_invalid_hash(monkeypatch):
-    from argon2 import PasswordHasher
+async def test_password_hasher_verify_raises_hashing_error_on_invalid_hash(monkeypatch):
+    from argon2 import PasswordHasher as Argon2Hasher
 
     def broken_verify(self, hash, password):
         raise InvalidHashError("bad hash")
 
-    monkeypatch.setattr(PasswordHasher, "verify", broken_verify)
+    monkeypatch.setattr(Argon2Hasher, "verify", broken_verify)
     with pytest.raises(HashingError, match="Failed to verify password"):
-        Hasher.verify("invalid_hash", "password")
+        PasswordHasher.verify("invalid_hash", "password")
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_hasher_verify_raises_hashing_error_on_generic_argon2(monkeypatch):
-    from argon2 import PasswordHasher
+async def test_password_hasher_verify_raises_hashing_error_on_generic_argon2(monkeypatch):
+    from argon2 import PasswordHasher as Argon2Hasher
 
     def broken_verify(self, hash, password):
         raise Argon2Error("generic error")
 
-    monkeypatch.setattr(PasswordHasher, "verify", broken_verify)
+    monkeypatch.setattr(Argon2Hasher, "verify", broken_verify)
     with pytest.raises(HashingError, match="Failed to verify password"):
-        Hasher.verify("some_hash", "password")
+        PasswordHasher.verify("some_hash", "password")
 
 
 @pytest.mark.unit

@@ -25,7 +25,7 @@ async def service(mock_uow: AsyncMock) -> UserService:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@patch("app.service.user.Hasher.hash", return_value="hashed_password")
+@patch("app.service.user.PasswordHasher.hash", return_value="hashed_password")
 async def test_create_user(mock_hash, service: UserService, mock_uow: AsyncMock):
     login = "test_user"
     password = "password123"
@@ -85,7 +85,7 @@ async def test_get_by_login(service: UserService, mock_uow: AsyncMock):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@patch("app.service.user.Hasher.hash", return_value="hashed_password")
+@patch("app.service.user.PasswordHasher.hash", return_value="hashed_password")
 async def test_get_by_login_with_auth(mock_hash, service: UserService, mock_uow: AsyncMock):
     login = "aaabbbccc"
     password = "hashed_password"
