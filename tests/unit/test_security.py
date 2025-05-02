@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from argon2.exceptions import Argon2Error, InvalidHashError
+from argon2.exceptions import Argon2Error, InvalidHashError, VerifyMismatchError
 from jwt import encode as jwt_encode
 
 from app.core.exceptions import HashingError
-from app.core.security import PasswordHasher, JWT, TokenError
+from app.core.security import JWT, PasswordHasher, TokenError
 
 
 @pytest.mark.unit
@@ -51,6 +51,18 @@ async def test_password_hasher_raises_hashing_error(monkeypatch):
     monkeypatch.setattr(Argon2Hasher, "hash", broken_hash)
     with pytest.raises(HashingError, match="Failed to hash password"):
         PasswordHasher.hash("password")
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_password_hasher_verify_mismatch_failure(monkeypatch):
+    from argon2 import PasswordHasher as Argon2Hasher
+
+    def broken_verify(self, hash, password):
+        raise VerifyMismatchError("mismatch error")
+
+    monkeypatch.setattr(Argon2Hasher, "verify", broken_verify)
+    assert PasswordHasher.verify("some_hash", "password") == False
 
 
 @pytest.mark.unit
