@@ -153,7 +153,7 @@ async def try_http_request(url: str) -> HttpResult | None:
             await graceful_shutdown()
 
             return HttpResult(status=response.status, text=body)
-    except aiohttp.client_exceptions.ClientError as exc:
+    except (aiohttp.client_exceptions.ClientError, ConnectionError) as exc:
         logger.debug("Http request to '%s' failed", url, exc_info=exc)
 
     return None
