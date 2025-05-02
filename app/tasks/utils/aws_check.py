@@ -57,6 +57,33 @@ def validate_aws_response(address: IPv4Address | IPv6Address, response: ProxyHtt
     return address == remote_address
 
 
+async def try_aws_http_request_with_proxy(
+    address: IPv4Address | IPv6Address,
+    url: str,
+    proxy_url: str,
+    protocol: Protocol,
+) -> tuple[bool, int]:
+    """
+    Attempt a single HTTP request through a proxy and validate it via AWS IP check.
+
+    This function sends a request to the given URL through the proxy and verifies
+    whether the response matches the proxy's IP address.
+
+    Args:
+        address (IPv4Address | IPv6Address): The expected IP address of the proxy.
+        url (str): The URL to request (e.g., AWS IP check URL).
+        proxy_url (str): The full formatted proxy URL.
+        protocol (Protocol): The protocol used by the proxy.
+
+    Returns:
+        tuple[bool, int]: A tuple containing a success flag and the response time in milliseconds.
+    """
+    response = await try_http_request_with_proxy(url, proxy_url, protocol)
+    if not response or not validate_aws_response(address, response):
+        return (False, 0)
+    return (True, response.time)
+
+
 async def check_proxy_with_aws(
     address: IPv4Address | IPv6Address,
     port: int,
@@ -86,14 +113,14 @@ async def check_proxy_with_aws(
 
     proxy_url = format_proxy_url(address, port, protocol, login, password)
 
-    response = await try_http_request_with_proxy(url, proxy_url, protocol)
-    if not response or not validate_aws_response(address, response):
+    response = await try_aws_http_request_with_proxy(address, url, proxy_url, protocol)
+    if not response[0]:
         return (False, 0)
 
     await asyncio.sleep(delay)  # delay between two requests to ensure proxy stability
 
-    response = await try_http_request_with_proxy(url, proxy_url, protocol)
-    if not response or not validate_aws_response(address, response):
+    response = await try_aws_http_request_with_proxy(address, url, proxy_url, protocol)
+    if not response[0]:
         return (False, 0)
 
-    return (True, response.time)
+    return (True, response[1])
