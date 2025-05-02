@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from argon2.exceptions import Argon2Error, InvalidHashError, VerifyMismatchError
 from jwt import encode as jwt_encode
+from jwt.exceptions import PyJWTError
 
 from app.core.exceptions import HashingError
 from app.core.security import JWT, PasswordHasher, TokenError
@@ -100,6 +101,20 @@ async def test_jwt_encode_valid(monkeypatch):
 
     decoded_id = JWT.decode(token)
     assert decoded_id == user_id
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_jwt_encode_token_error(monkeypatch):
+    def patched_encode(payload, key, algorithm):
+        raise PyJWTError("payload error")
+        return jwt_encode(payload=payload, key=key, algorithm=algorithm)
+
+    monkeypatch.setattr("app.core.security.jwt_encode", patched_encode)
+
+    user_id = "user123"
+    with pytest.raises(TokenError, match="Token encode failure"):
+        JWT.encode(user_id)
 
 
 @pytest.mark.unit
