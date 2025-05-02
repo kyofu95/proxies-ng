@@ -5,6 +5,7 @@ import pytest
 from app.tasks.utils.gather import cgather
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_cgather_filters_none_and_exceptions():
     async def return_value(val):
@@ -33,6 +34,7 @@ async def test_cgather_filters_none_and_exceptions():
     assert sorted(result) == [1, 2, 3]
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_cgather_respects_concurrency_limit():
     running = 0
