@@ -24,8 +24,8 @@ def make_proxy() -> Proxy:
 
     proxy.health = ProxyHealth()
     proxy.health.id = uuid4()
-    proxy.health.total_conn_attemps = 4
-    proxy.health.failed_conn_attemps = 0
+    proxy.health.total_conn_attempts = 4
+    proxy.health.failed_conn_attempts = 0
     proxy.health.latency = 0
     proxy.health.last_tested = None
     proxy.health.proxy_id = proxy.id
@@ -57,7 +57,7 @@ async def test_proxy_repository_update(db_session_factory: async_sessionmaker[As
         stored_proxy = await uow.proxy_repository.get_by_id(proxy.id)
         assert stored_proxy
 
-        stored_proxy.health.total_conn_attemps = 5
+        stored_proxy.health.total_conn_attempts = 5
 
         await uow.proxy_repository.update(stored_proxy)
 
@@ -65,7 +65,7 @@ async def test_proxy_repository_update(db_session_factory: async_sessionmaker[As
         stored_proxy = await uow.proxy_repository.get_by_id(proxy.id)
         assert stored_proxy
         assert stored_proxy.id == proxy.id
-        assert stored_proxy.health.total_conn_attemps == 5
+        assert stored_proxy.health.total_conn_attempts == 5
 
 
 @pytest.mark.integration
@@ -119,8 +119,8 @@ async def test_proxy_repository_geo_address_add(db_session_factory: async_sessio
 async def test_proxy_repository_geo_address_proxy(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
     health = ProxyHealth()
     health.id = uuid4()
-    health.total_conn_attemps = 4
-    health.failed_conn_attemps = 0
+    health.total_conn_attempts = 4
+    health.failed_conn_attempts = 0
 
     proxy = Proxy()
     proxy.id = uuid4()
@@ -277,12 +277,12 @@ async def test_proxy_repository_update_bulk(db_session_factory: async_sessionmak
         await uow.proxy_repository.add_bulk(proxies)
 
         for proxy in proxies:
-            proxy.health.failed_conn_attemps += 1
+            proxy.health.failed_conn_attempts += 1
 
         await uow.proxy_repository.update_bulk(proxies)
 
         proxy = await uow.proxy_repository.get_by_id(proxies[0].id)
-        assert proxy.health.failed_conn_attemps > 0
+        assert proxy.health.failed_conn_attempts > 0
 
 
 @pytest.mark.integration

@@ -76,6 +76,7 @@ class ProxyHealth(Base):
     Attributes:
         total_conn_attempts (int): Total number of connection attempts.
         failed_conn_attempts (int): Number of failed connection attempts.
+        latency (int): Last measured latency in milliseconds.
         last_tested (datetime | None): Timestamp of the last connection test.
         proxy_id (UUID): Foreign key linking to the proxy id.
         proxy (Proxy): Relationship to the Proxy model.
@@ -88,8 +89,8 @@ class ProxyHealth(Base):
         ),  # sqlalchemy recommends to use constraint on fk in one-to-one
     )
 
-    total_conn_attemps: Mapped[int] = mapped_column(default=0)
-    failed_conn_attemps: Mapped[int] = mapped_column(default=0)
+    total_conn_attempts: Mapped[int] = mapped_column(default=0)
+    failed_conn_attempts: Mapped[int] = mapped_column(default=0)
 
     latency: Mapped[int] = mapped_column(default=0)
 

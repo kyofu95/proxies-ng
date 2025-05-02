@@ -266,14 +266,14 @@ class ProxyService:
 
         proxy.health = ProxyHealth()
         proxy.health.id = uuid4()
-        proxy.health.total_conn_attemps = 0
-        proxy.health.failed_conn_attemps = 0
+        proxy.health.total_conn_attempts = 0
+        proxy.health.failed_conn_attempts = 0
         proxy.health.latency = 0
         proxy.health.last_tested = None
         proxy.health.proxy_id = proxy.id
 
         if initial_health:
-            proxy.health.total_conn_attemps = 1
+            proxy.health.total_conn_attempts = 1
             proxy.health.latency = initial_health.latency
             proxy.health.last_tested = initial_health.tested
 

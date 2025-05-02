@@ -265,7 +265,7 @@ class ProxyRepository(BaseRepository[Proxy]):
 
         stmt = stmt.join(ProxyHealth)
         if only_checked:
-            stmt = stmt.where(and_(ProxyHealth.last_tested.is_not(None), ProxyHealth.total_conn_attemps > 0))
+            stmt = stmt.where(and_(ProxyHealth.last_tested.is_not(None), ProxyHealth.total_conn_attempts > 0))
 
             # Descending order means latest proxy on the top
             stmt = stmt.order_by(ProxyHealth.last_tested.desc())
@@ -314,7 +314,7 @@ class ProxyRepository(BaseRepository[Proxy]):
 
         stmt = stmt.join(ProxyHealth)
         if only_checked:
-            stmt = stmt.where(and_(ProxyHealth.last_tested.is_not(None), ProxyHealth.total_conn_attemps > 0))
+            stmt = stmt.where(and_(ProxyHealth.last_tested.is_not(None), ProxyHealth.total_conn_attempts > 0))
 
         result = await self.session.execute(stmt)
         return result.scalar_one()

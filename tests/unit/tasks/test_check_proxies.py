@@ -16,8 +16,8 @@ def proxy():
         login=None,
         password=None,
         health=ProxyHealth(
-            total_conn_attemps=0,
-            failed_conn_attemps=0,
+            total_conn_attempts=0,
+            failed_conn_attempts=0,
             latency=None,
             last_tested=None,
         ),
@@ -32,8 +32,8 @@ async def test_check_single_proxy_success(mock_check, proxy):
 
     updated = await check_single_proxy(proxy)
 
-    assert updated.health.total_conn_attemps == 1
-    assert updated.health.failed_conn_attemps == 0
+    assert updated.health.total_conn_attempts == 1
+    assert updated.health.failed_conn_attempts == 0
     assert updated.health.latency == 123
     assert isinstance(updated.health.last_tested, datetime.datetime)
     assert updated.health.last_tested.tzinfo == datetime.UTC
@@ -47,7 +47,7 @@ async def test_check_single_proxy_failure(mock_check, proxy):
 
     updated = await check_single_proxy(proxy)
 
-    assert updated.health.total_conn_attemps == 1
-    assert updated.health.failed_conn_attemps == 1
+    assert updated.health.total_conn_attempts == 1
+    assert updated.health.failed_conn_attempts == 1
     assert updated.health.latency is None
     assert updated.health.last_tested is None

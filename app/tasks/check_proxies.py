@@ -33,13 +33,13 @@ async def check_single_proxy(proxy: Proxy) -> Proxy:
         password=proxy.password,
     )
 
-    proxy.health.total_conn_attemps += 1
+    proxy.health.total_conn_attempts += 1
 
     if success:
         proxy.health.latency = response_time
         proxy.health.last_tested = datetime.datetime.now(tz=datetime.UTC)
     else:
-        proxy.health.failed_conn_attemps += 1
+        proxy.health.failed_conn_attempts += 1
 
     return proxy
 
@@ -65,8 +65,8 @@ async def check_proxies() -> None:
 
     for proxy in proxies:
         if (
-            proxy.health.total_conn_attemps > 6
-            and proxy.health.total_conn_attemps - proxy.health.failed_conn_attemps <= 3
+            proxy.health.total_conn_attempts > 6
+            and proxy.health.total_conn_attempts - proxy.health.failed_conn_attempts <= 3
         ):
             await proxy_service.remove(proxy)
             continue
