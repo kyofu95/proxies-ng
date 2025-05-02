@@ -6,8 +6,9 @@ import pytest
 import pytest_asyncio
 
 from app.core.uow import SQLUnitOfWork
-from app.models.proxy import Protocol, Proxy
-from app.service.proxy import Location, ProxyService
+from app.models.country import Country
+from app.models.proxy import Protocol, Proxy, ProxyAddress
+from app.service.proxy import Location, ProxyService, NotFoundError
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
@@ -173,3 +174,61 @@ async def test_update_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
     await service.update_bulk(proxies, only_health=True)
 
     mock_uow.proxy_repository.update_bulk.assert_called_once_with(proxies, only_health=True)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_resolve_location_lookup_success(service: ProxyService, mock_uow: AsyncMock) -> None:
+    location_obj = Location(city="X", region="Y", country_code="DE")
+
+    mock_address_country = Country(code="DE", name="Germany")
+    mock_address = ProxyAddress(city="X", region="Y", country=mock_address_country)
+
+    mock_uow.proxy_repository.get_geo_address_by_location.return_value = mock_address
+
+    result = await service._resolve_location(location_obj)
+
+    mock_uow.proxy_repository.get_geo_address_by_location.assert_called_once()
+
+    assert result.city == mock_address.city
+    assert result.region == mock_address.region
+    assert result.country.code == mock_address.country.code
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_resolve_location_create_address(service: ProxyService, mock_uow: AsyncMock) -> None:
+    location_obj = Location(city="A", region="B", country_code="YY")
+
+    mock_uow.proxy_repository.get_geo_address_by_location.return_value = None
+
+    mock_country = Country(id=uuid4(), code="YY", name="YYYY")
+    mock_uow.proxy_repository.get_country_by_code.return_value = mock_country
+
+    mock_uow.proxy_repository.add_geo_address.side_effect = lambda geo: geo
+
+    result = await service._resolve_location(location_obj)
+
+    mock_uow.proxy_repository.get_geo_address_by_location.assert_called_once()
+    mock_uow.proxy_repository.get_country_by_code.assert_called_once()
+    mock_uow.proxy_repository.add_geo_address.assert_called_once()
+
+    assert result
+    assert result.city == location_obj.city
+    assert result.region == location_obj.region
+    assert result.country.code == mock_country.code
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_resolve_location_no_country(service: ProxyService, mock_uow: AsyncMock) -> None:
+    location_obj = Location(city="A1", region="B2", country_code="XX")
+
+    mock_uow.proxy_repository.get_geo_address_by_location.return_value = None
+    mock_uow.proxy_repository.get_country_by_code.return_value = None
+
+    with pytest.raises(NotFoundError, match=f"Could not find country with code {location_obj.country_code}"):
+        await service._resolve_location(location_obj)
+
+    mock_uow.proxy_repository.get_geo_address_by_location.assert_called_once()
+    mock_uow.proxy_repository.get_country_by_code.assert_called_once()
