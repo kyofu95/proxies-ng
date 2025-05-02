@@ -85,18 +85,18 @@ async def test_get_by_login(service: UserService, mock_uow: AsyncMock):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@patch("app.service.user.PasswordHasher.hash", return_value="hashed_password")
-async def test_get_by_login_with_auth(mock_hash, service: UserService, mock_uow: AsyncMock):
+@patch("app.service.user.PasswordHasher.verify", new_callable=AsyncMock)
+async def test_get_by_login_with_auth_success(mock_hash, service: UserService, mock_uow: AsyncMock):
+    mock_hash.return_value = True
     login = "aaabbbccc"
-    password = "hashed_password"
-    user = User(id=uuid4(), login=login, password=password)
+    user = User(id=uuid4(), login=login, password="hashed_password")
     mock_uow.user_repository.get_by_login.return_value = user
 
-    result = await service.get_by_login_with_auth(login, password)
+    result = await service.get_by_login_with_auth(login, "plain_password")
 
     mock_uow.user_repository.get_by_login.assert_called_once_with(login)
     assert result == user
-    mock_hash.assert_called_once_with(password)
+    mock_hash.assert_called_once_with(hashed_password="hashed_password", plaintext_password="plain_password")
 
 @pytest.mark.unit
 @pytest.mark.asyncio

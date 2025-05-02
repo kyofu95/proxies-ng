@@ -98,8 +98,7 @@ class UserService:
             return None
 
         # check if password match
-        encoded_password = PasswordHasher.hash(plain_password)
-        if user.password != encoded_password:
+        if not PasswordHasher.verify(hashed_password=user.password, plaintext_password=plain_password):
             return None
 
         return user
