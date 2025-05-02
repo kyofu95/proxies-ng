@@ -1,5 +1,6 @@
+from datetime import datetime
 from ipaddress import IPv4Address
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
@@ -7,8 +8,8 @@ import pytest_asyncio
 
 from app.core.uow import SQLUnitOfWork
 from app.models.country import Country
-from app.models.proxy import Protocol, Proxy, ProxyAddress
-from app.service.proxy import Location, ProxyService, NotFoundError
+from app.models.proxy import Protocol, Proxy, ProxyAddress, ProxyHealth
+from app.service.proxy import InitialHealth, Location, NotFoundError, ProxyService
 
 
 @pytest_asyncio.fixture(loop_scope="function", scope="function")
@@ -174,6 +175,109 @@ async def test_update_bulk(service: ProxyService, mock_uow: AsyncMock) -> None:
     await service.update_bulk(proxies, only_health=True)
 
     mock_uow.proxy_repository.update_bulk.assert_called_once_with(proxies, only_health=True)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_build(service: ProxyService, mock_uow: AsyncMock) -> None:
+    ip_address = IPv4Address("10.0.0.1")
+    port = 3128
+    protocol = Protocol.HTTPS
+    login = "user"
+    password = "pass"
+
+    proxy = await service._build(
+        address=ip_address,
+        port=port,
+        protocol=protocol,
+        login=login,
+        password=password,
+    )
+
+    assert proxy.address == ip_address
+    assert proxy.port == port
+    assert proxy.protocol == protocol
+    assert proxy.login == login
+    assert proxy.password == password
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_build_with_health(service: ProxyService, mock_uow: AsyncMock) -> None:
+    ip_address = IPv4Address("10.0.0.1")
+    port = 3128
+    protocol = Protocol.HTTPS
+    login = "user"
+    password = "pass"
+    latency = 123
+    tested_at = datetime.utcnow()
+
+    proxy = await service._build(
+        address=ip_address,
+        port=port,
+        protocol=protocol,
+        login=login,
+        password=password,
+        initial_health=InitialHealth(latency=latency, tested=tested_at),
+    )
+
+    assert proxy.address == ip_address
+    assert proxy.port == port
+    assert proxy.protocol == protocol
+    assert proxy.login == login
+    assert proxy.password == password
+
+    assert isinstance(proxy.health, ProxyHealth)
+    assert proxy.health.total_conn_attempts == 1
+    assert proxy.health.latency == latency
+    assert proxy.health.last_tested == tested_at
+    assert proxy.health.proxy_id == proxy.id
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_build_with_health_and_location(service: ProxyService, mock_uow: AsyncMock) -> None:
+    location = Location(city="TestCity", region="TestRegion", country_code="US")
+    ip_address = IPv4Address("10.0.0.1")
+    port = 3128
+    protocol = Protocol.HTTPS
+    login = "user"
+    password = "pass"
+    latency = 123
+    tested_at = datetime.utcnow()
+
+    fake_geo_address = ProxyAddress()
+    fake_geo_address.id = uuid4()
+    fake_geo_address.city = location.city
+    fake_geo_address.region = location.region
+
+    with patch.object(service, "_resolve_location", new=AsyncMock(return_value=fake_geo_address)) as mock_resolve:
+        proxy = await service._build(
+            address=ip_address,
+            port=port,
+            protocol=protocol,
+            login=login,
+            password=password,
+            location=location,
+            initial_health=InitialHealth(latency=latency, tested=tested_at),
+        )
+
+    mock_resolve.assert_awaited_once_with(location)
+
+    assert proxy.address == ip_address
+    assert proxy.port == port
+    assert proxy.protocol == protocol
+    assert proxy.login == login
+    assert proxy.password == password
+
+    assert isinstance(proxy.health, ProxyHealth)
+    assert proxy.health.total_conn_attempts == 1
+    assert proxy.health.latency == latency
+    assert proxy.health.last_tested == tested_at
+    assert proxy.health.proxy_id == proxy.id
+
+    assert proxy.geo_address == fake_geo_address
+    assert proxy.geo_address.city == fake_geo_address.city
 
 
 @pytest.mark.unit
