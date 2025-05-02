@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
 
 import pytest
@@ -83,9 +83,10 @@ async def test_get_by_login(service: UserService, mock_uow: AsyncMock):
     mock_uow.user_repository.get_by_login.assert_called_once_with(login)
     assert result == user
 
+
 @pytest.mark.unit
 @pytest.mark.asyncio
-@patch("app.service.user.PasswordHasher.verify", new_callable=AsyncMock)
+@patch("app.service.user.PasswordHasher.verify", new_callable=Mock)
 async def test_get_by_login_with_auth_success(mock_hash, service: UserService, mock_uow: AsyncMock):
     mock_hash.return_value = True
     login = "aaabbbccc"
@@ -97,6 +98,23 @@ async def test_get_by_login_with_auth_success(mock_hash, service: UserService, m
     mock_uow.user_repository.get_by_login.assert_called_once_with(login)
     assert result == user
     mock_hash.assert_called_once_with(hashed_password="hashed_password", plaintext_password="plain_password")
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+@patch("app.service.user.PasswordHasher.verify", new_callable=Mock)
+async def test_get_by_login_with_auth_password_mismatch(mock_hash, service: UserService, mock_uow: AsyncMock):
+    mock_hash.return_value = False
+    login = "a1b2c3"
+    user = User(id=uuid4(), login=login, password="hashed_password")
+    mock_uow.user_repository.get_by_login.return_value = user
+
+    result = await service.get_by_login_with_auth(login, "plain_password")
+
+    mock_uow.user_repository.get_by_login.assert_called_once_with(login)
+    assert result is None
+    mock_hash.assert_called_once_with(hashed_password="hashed_password", plaintext_password="plain_password")
+
 
 @pytest.mark.unit
 @pytest.mark.asyncio
