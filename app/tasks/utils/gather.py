@@ -33,4 +33,4 @@ async def cgather(*tasks: Awaitable[T | None], limit: int = 50) -> list[T]:
     )
 
     # filter out exceptions
-    return [value for value in results if value and not isinstance(value, BaseException)]
+    return [value for value in results if value is not None and not isinstance(value, BaseException)]
