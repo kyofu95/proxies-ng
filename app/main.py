@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -6,9 +7,12 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.api.api import api_router
+from app.core.config import jwt_settings
 from app.views.pages import router as pages_router
 
 from .error_handlers import install_exception_handlers
+
+logger = logging.getLogger(__name__)
 
 BASE_PATH = Path(__file__).resolve().parent
 
@@ -59,6 +63,9 @@ def create_app() -> FastAPI:
     api.include_router(api_router)
 
     install_exception_handlers(api)
+
+    if jwt_settings.secret_key == "0":
+        logger.warning("jwt secret key set to default value")
 
     return api
 
