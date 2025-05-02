@@ -156,12 +156,10 @@ async def fetch_all_proxy_lists(sources: list[Source]) -> list[tuple[IPAddress, 
         download_proxy_list(source.uri, source.uri_predefined_type) for source in sources if source.uri_predefined_type
     ]
 
-    fetch_tasks_results = await asyncio.gather(*fetch_tasks, return_exceptions=True)
+    fetch_tasks_results = await cgather(*fetch_tasks, limit=5)
 
     # process list of lists to list
     for proxy_list in fetch_tasks_results:
-        if not proxy_list or isinstance(proxy_list, BaseException):
-            continue
         unchecked_proxies.extend(proxy_list)
 
     return unchecked_proxies
