@@ -58,3 +58,12 @@ class TokenError(BaseError):
     This exception should be used when token encoding, decoding, or validation
     fails due to expiration, tampering, or incorrect format.
     """
+
+
+class LogicError(BaseError):
+    """
+    Exception raised when application logic constraints are violated.
+
+    This exception should be used to indicate violations of business logic rules
+    or invalid combinations of parameters or states.
+    """

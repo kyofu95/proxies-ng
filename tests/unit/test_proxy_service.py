@@ -6,7 +6,7 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 
-from app.core.exceptions import CountryCodeError
+from app.core.exceptions import CountryCodeError, LogicError
 from app.core.uow import SQLUnitOfWork
 from app.models.country import Country
 from app.models.proxy import Protocol, Proxy, ProxyAddress, ProxyHealth
@@ -96,8 +96,8 @@ async def test_get_proxies(service: ProxyService, mock_uow: AsyncMock) -> None:
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_get_proxies_exception(service: ProxyService, mock_uow: AsyncMock) -> None:
-    with pytest.raises(ValueError):
+async def test_get_proxies_logic_exception(service: ProxyService, mock_uow: AsyncMock) -> None:
+    with pytest.raises(LogicError):
         await service.get_proxies(sort_by_unchecked=True, only_checked=True)
 
 

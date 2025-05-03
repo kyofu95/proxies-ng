@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 import pycountry
 
-from app.core.exceptions import CountryCodeError, NotFoundError
+from app.core.exceptions import CountryCodeError, LogicError, NotFoundError
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Location, Protocol, Proxy, ProxyAddress, ProxyHealth
 
@@ -170,13 +170,14 @@ class ProxyService:
                 Cannot be True when 'only_checked' is also True.
 
         Raises:
-            ValueError: If both 'only_checked' and 'sort_by_unchecked' are True.
+            LogicError: If both 'only_checked' and 'sort_by_unchecked' are True.
+            CountryCodeError: If the provided country code is not a valid ISO 3166-1 alpha-2 code.
 
         Returns:
             list[Proxy]: A list of Proxy entities that match the given filters.
         """
         if only_checked and sort_by_unchecked:
-            raise ValueError("Cannot sort by unchecked if only_checked is True")
+            raise LogicError("Cannot sort by unchecked if only_checked is True")
 
         # validate country code
         if country_alpha2_code and not pycountry.countries.get(alpha_2=country_alpha2_code):
