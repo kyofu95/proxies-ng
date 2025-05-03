@@ -268,6 +268,13 @@ async def test_proxy_repository_add_bulk(db_session_factory: async_sessionmaker[
         proxies = [make_proxy() for _ in range(3)]
         await uow.proxy_repository.add_bulk(proxies)
 
+@pytest.mark.integration
+@pytest.mark.asyncio(loop_scope="session")
+async def test_proxy_repository_add_bulk_zero_proxies(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        proxies = []
+        await uow.proxy_repository.add_bulk(proxies)
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
