@@ -39,3 +39,18 @@ async def api_docs(request: Request) -> HTMLResponse:
     """
     context = {"request": request}
     return templates.TemplateResponse("api.html", context=context)
+
+
+@router.get("/login", status_code=200)
+async def login(request: Request) -> HTMLResponse:
+    """
+    Render the login page.
+
+    Args:
+        request (Request): The incoming HTTP request object.
+
+    Returns:
+        HTMLResponse: Rendered HTML response using the login.html Jinja2 template.
+    """
+    context = {"request": request}
+    return templates.TemplateResponse("login.html", context=context)
