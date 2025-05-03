@@ -14,12 +14,12 @@ def random_ipv4() -> IPv4Address | IPv6Address:
     return ip_address(ip)
 
 
-def make_proxy() -> Proxy:
+def make_proxy(protocol_ = Protocol.SOCKS4) -> Proxy:
     proxy = Proxy()
     proxy.id = uuid4()
     proxy.address = random_ipv4()
     proxy.port = 8080
-    proxy.protocol = Protocol.SOCKS4
+    proxy.protocol = protocol_
     proxy.geo_address = None
 
     proxy.health = ProxyHealth()
@@ -182,8 +182,7 @@ async def test_proxy_repository_get_geo_address_by_location(
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
     async with SQLUnitOfWork(db_session_factory) as uow:
-        proxy = make_proxy()
-        proxy.protocol = Protocol.HTTPS
+        proxy = make_proxy(Protocol.HTTPS)
         geo_address = ProxyAddress()
         geo_address.id = uuid4()
         geo_address.city = "Amsterdam"
@@ -195,8 +194,7 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
 
         await uow.proxy_repository.add(proxy)
 
-        proxy = make_proxy()
-        proxy.protocol = Protocol.HTTPS
+        proxy = make_proxy(Protocol.HTTPS)
         geo_address = ProxyAddress()
         geo_address.id = uuid4()
         geo_address.city = "Utrecht"
@@ -208,8 +206,7 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
 
         await uow.proxy_repository.add(proxy)
 
-        proxy = make_proxy()
-        proxy.protocol = Protocol.HTTPS
+        proxy = make_proxy(Protocol.HTTPS)
         geo_address = ProxyAddress()
         geo_address.id = uuid4()
         geo_address.city = "Lyon"
@@ -221,8 +218,7 @@ async def test_proxy_repository_get_proxies(db_session_factory: async_sessionmak
 
         await uow.proxy_repository.add(proxy)
 
-        proxy = make_proxy()
-        proxy.protocol = Protocol.HTTP
+        proxy = make_proxy(Protocol.HTTP)
 
         await uow.proxy_repository.add(proxy)
 
@@ -307,8 +303,7 @@ async def test_proxy_repository_get_country_by_code(db_session_factory: async_se
 @pytest.mark.asyncio(loop_scope="session")
 async def test_proxy_repository_proxies_count(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
     async with SQLUnitOfWork(db_session_factory) as uow:
-        proxy = make_proxy()
-        proxy.protocol = Protocol.HTTPS
+        proxy = make_proxy(Protocol.HTTPS)
         geo_address = ProxyAddress()
         geo_address.id = uuid4()
         geo_address.city = "Dallas"
