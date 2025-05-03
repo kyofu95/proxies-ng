@@ -4,7 +4,7 @@ from sqlalchemy import and_, distinct, func, insert, select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import LogicError, NotFoundError
 from app.models.country import Country
 from app.models.proxy import Protocol, Proxy, ProxyAddress, ProxyHealth
 
@@ -247,13 +247,13 @@ class ProxyRepository(BaseRepository[Proxy]):
                 Cannot be True when 'only_checked' is also True.
 
         Raises:
-            ValueError: If both 'only_checked' and 'sort_by_unchecked' are True.
+            LogicError: If both 'only_checked' and 'sort_by_unchecked' are True.
 
         Returns:
             list[Proxy]: A list of Proxy entities matching the provided filters.
         """
         if only_checked and sort_by_unchecked:
-            raise ValueError("Cannot sort by unchecked if only_checked is True")
+            raise LogicError("Cannot sort by unchecked if only_checked is True")
 
         stmt = select(Proxy).where(Proxy.geo_address_id.is_not(None))
 
