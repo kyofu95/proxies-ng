@@ -6,7 +6,6 @@ $(document).ready(function () {
             type: "POST",
             url: "/api/private/auth/logout",
             success: function (response) {
-                console.log("Logged out:", response.message);
                 window.location.href = "/login";
             },
             error: function (xhr) {
