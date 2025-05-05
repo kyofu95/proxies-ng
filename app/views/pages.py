@@ -1,8 +1,10 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Request, status
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+
+from .utils.user_deps import IsLoggedDep
 
 BASE_PATH = Path(__file__).resolve().parent.parent
 
@@ -56,8 +58,8 @@ async def login(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("login.html", context=context)
 
 
-@router.get("/dashboard", status_code=status.HTTP_200_OK)
-async def dashboard(request: Request) -> HTMLResponse:
+@router.get("/dashboard", status_code=status.HTTP_200_OK, response_model=None)
+async def dashboard(request: Request, is_logged: IsLoggedDep) -> HTMLResponse | RedirectResponse:
     """
     Render the dashboard page.
 
@@ -67,5 +69,8 @@ async def dashboard(request: Request) -> HTMLResponse:
     Returns:
         HTMLResponse: Rendered HTML response using the dashboard.html Jinja2 template.
     """
+    if not is_logged:
+        return RedirectResponse(request.url_for("login"), status_code=status.HTTP_302_FOUND)
+
     context = {"request": request}
     return templates.TemplateResponse("dashboard.html", context=context)
