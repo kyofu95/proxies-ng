@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, status
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -11,7 +11,7 @@ templates = Jinja2Templates(directory=str(BASE_PATH / "templates"))
 router = APIRouter()
 
 
-@router.get("/", status_code=200)
+@router.get("/", status_code=status.HTTP_200_OK)
 async def index(request: Request) -> HTMLResponse:
     """
     Render the index (home) page.
@@ -26,7 +26,7 @@ async def index(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("index.html", context=context)
 
 
-@router.get("/api", status_code=200)
+@router.get("/api", status_code=status.HTTP_200_OK)
 async def api_docs(request: Request) -> HTMLResponse:
     """
     Render the index (home) page.
@@ -41,7 +41,7 @@ async def api_docs(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("api.html", context=context)
 
 
-@router.get("/login", status_code=200)
+@router.get("/login", status_code=status.HTTP_200_OK)
 async def login(request: Request) -> HTMLResponse:
     """
     Render the login page.
@@ -56,7 +56,7 @@ async def login(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("login.html", context=context)
 
 
-@router.get("/dashboard", status_code=200)
+@router.get("/dashboard", status_code=status.HTTP_200_OK)
 async def dashboard(request: Request) -> HTMLResponse:
     """
     Render the dashboard page.
