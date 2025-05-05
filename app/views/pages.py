@@ -54,3 +54,18 @@ async def login(request: Request) -> HTMLResponse:
     """
     context = {"request": request}
     return templates.TemplateResponse("login.html", context=context)
+
+
+@router.get("/dashboard", status_code=200)
+async def dashboard(request: Request) -> HTMLResponse:
+    """
+    Render the dashboard page.
+
+    Args:
+        request (Request): The incoming HTTP request object.
+
+    Returns:
+        HTMLResponse: Rendered HTML response using the dashboard.html Jinja2 template.
+    """
+    context = {"request": request}
+    return templates.TemplateResponse("dashboard.html", context=context)
