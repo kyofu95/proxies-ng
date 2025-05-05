@@ -23,7 +23,7 @@ $(function () {
                 password: password
             }),
             success: function () {
-                console.log('Redirect OK');
+                window.location.href = '/dashboard';
             },
             error: function (xhr) {
                 if (xhr.status === 401) {
