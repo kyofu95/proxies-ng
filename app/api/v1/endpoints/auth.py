@@ -1,10 +1,11 @@
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from app.core.security import JWT
 
 from .schemas.login import LoginRequest
 from .utils.dependencies import UserServiceDep
+from .utils.token_auth import CurrentUserDep
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -53,7 +54,7 @@ async def login(user_data: LoginRequest, service: UserServiceDep) -> JSONRespons
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
-async def logout() -> JSONResponse:
+async def logout(_: CurrentUserDep) -> JSONResponse:
     """
     Log the user out by deleting the cookie with token cookie.
 
