@@ -10,14 +10,13 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/login", status_code=status.HTTP_200_OK)
-async def login(user_data: LoginRequest, service: UserServiceDep, response: Response) -> JSONResponse:
+async def login(user_data: LoginRequest, service: UserServiceDep) -> JSONResponse:
     """
     Authenticate the user and logs them in by setting an access token in a cookie.
 
     Args:
         user_data (LoginRequest): The login credentials of the user (username and password).
         service (UserServiceDep): The service responsible for retrieving user data.
-        response (Response): The FastAPI response object, used to set cookies.
 
     Raises:
         HTTPException: If the login credentials are incorrect, a 401 error is raised.
@@ -36,6 +35,10 @@ async def login(user_data: LoginRequest, service: UserServiceDep, response: Resp
 
     access_token = JWT.encode(str(user.id))
 
+    content = {"message": "logged in"}
+
+    response = JSONResponse(content=content)
+
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -46,9 +49,7 @@ async def login(user_data: LoginRequest, service: UserServiceDep, response: Resp
         max_age=3600,  # one hour
     )
 
-    content = {"message": "logged in"}
-
-    return JSONResponse(content=content)
+    return response
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
