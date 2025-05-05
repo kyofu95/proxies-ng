@@ -53,21 +53,20 @@ async def login(user_data: LoginRequest, service: UserServiceDep) -> JSONRespons
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
-async def logout(response: Response) -> JSONResponse:
+async def logout() -> JSONResponse:
     """
     Log the user out by deleting the cookie with token cookie.
-
-    Args:
-        response (Response): The FastAPI response object, used to delete cookies.
 
     Returns:
         JSONResponse: A response containing a message indicating that the user has logged out.
     """
+    content = {"message": "logged out"}
+
+    response = JSONResponse(content=content)
+
     response.delete_cookie(
         "access_token",
         path="/",
     )
 
-    content = {"message": "logged out"}
-
-    return JSONResponse(content=content)
+    return response
