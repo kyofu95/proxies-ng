@@ -65,17 +65,6 @@ class SourceRepository(BaseRepository[Source]):
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_all(self) -> list[Source]:
-        """
-        Retrieve all Source entities from the database.
-
-        Returns:
-            list[Source]: A list of all Source entities.
-        """
-        stmt = select(Source)
-        result = await self.session.execute(stmt)
-        return list(result.scalars().all())
-
     async def update(self, entity: Source) -> Source:
         """
         Update an existing Source entity in the database.
