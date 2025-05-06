@@ -93,3 +93,11 @@ async def test_remove_source(service: SourceService, mock_uow: AsyncMock) -> Non
     await service.remove(mock_source)
 
     mock_uow.source_repository.remove.assert_called_once_with(mock_source)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_get_sources(service: SourceService, mock_uow: AsyncMock) -> None:
+    await service.get_sources()
+
+    mock_uow.source_repository.get_sources.assert_called_once()

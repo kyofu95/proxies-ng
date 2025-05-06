@@ -114,3 +114,17 @@ class SourceRepository(BaseRepository[Source]):
             entity (Source): The Source entity to remove.
         """
         await self.session.delete(entity)
+
+    async def get_sources(self) -> list[Source]:
+        """
+        Retrieve all Source entities from the database.
+
+        This is functionally identical to `get_all()` but may be used
+        in contexts where naming clarity or consistency is preferred.
+
+        Returns:
+            list[Source]: A list of all Source entities.
+        """
+        stmt = select(Source)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

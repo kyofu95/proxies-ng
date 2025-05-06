@@ -25,7 +25,6 @@ def make_a_source() -> Source:
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_source_repository_add(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
     async with SQLUnitOfWork(db_session_factory) as uow:
         source = make_a_source()
         assert await uow.source_repository.add(source)
@@ -45,10 +44,10 @@ async def test_source_repository_add(db_session_factory: async_sessionmaker[Asyn
         assert stored_source
         assert stored_source.name == source.name
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_source_repository_update(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
     async with SQLUnitOfWork(db_session_factory) as uow:
         source = make_a_source()
         assert await uow.source_repository.add(source)
@@ -68,10 +67,10 @@ async def test_source_repository_update(db_session_factory: async_sessionmaker[A
         assert stored_source.health
         assert stored_source.health.total_conn_attemps == health.total_conn_attemps
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio(loop_scope="session")
 async def test_source_repository_remove(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
-
     async with SQLUnitOfWork(db_session_factory) as uow:
         source = make_a_source()
         assert await uow.source_repository.add(source)
@@ -84,3 +83,20 @@ async def test_source_repository_remove(db_session_factory: async_sessionmaker[A
     async with SQLUnitOfWork(db_session_factory) as uow:
         stored_source = await uow.source_repository.get_by_id(source.id)
         assert stored_source is None
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio(loop_scope="session")
+async def test_source_repository_get_sources(db_session_factory: async_sessionmaker[AsyncSession]) -> None:
+    sources = []
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        for _ in range(3):
+            source = make_a_source()
+            source = await uow.source_repository.add(source)
+            sources.append(source)
+
+    async with SQLUnitOfWork(db_session_factory) as uow:
+        result_sources = await uow.source_repository.get_sources()
+
+    assert result_sources
+    assert len(result_sources) >= 3

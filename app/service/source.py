@@ -99,3 +99,13 @@ class SourceService:
         """
         async with self.uow as uow:
             await uow.source_repository.remove(source)
+
+    async def get_sources(self) -> list[Source]:
+        """
+        Retrieve all available proxy sources from the database.
+
+        Returns:
+            list[Source]: A list of all proxy source objects.
+        """
+        async with self.uow as uow:
+            return await uow.source_repository.get_sources()
