@@ -61,13 +61,15 @@ async def login(request: Request) -> HTMLResponse:
 @router.get("/dashboard", status_code=status.HTTP_200_OK, response_model=None)
 async def dashboard(request: Request, is_logged: IsLoggedDep) -> HTMLResponse | RedirectResponse:
     """
-    Render the dashboard page.
+    Render the dashboard page if the user is logged in; otherwise, redirect to login.
 
     Args:
-        request (Request): The incoming HTTP request object.
+        request (Request): The incoming HTTP request.
+        is_logged (IsLoggedDep): Dependency that indicates if the user is authenticated.
 
     Returns:
-        HTMLResponse: Rendered HTML response using the dashboard.html Jinja2 template.
+        HTMLResponse: Rendered 'dashboard.html' template if logged in.
+        RedirectResponse: Redirect to login page if not authenticated.
     """
     if not is_logged:
         return RedirectResponse(request.url_for("login"), status_code=status.HTTP_302_FOUND)
