@@ -1,4 +1,5 @@
 from fastapi import APIRouter, status
+from fastapi.responses import JSONResponse
 from pydantic import TypeAdapter
 
 from .schemas.source import SourceNameRequest, SourceRequest, SourceResponse
@@ -28,7 +29,7 @@ async def get_all_sources(user: CurrentUserDep, source_service: SourceServiceDep
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def add_source(new_source: SourceRequest, user: CurrentUserDep, source_service: SourceServiceDep) -> None:
+async def add_source(new_source: SourceRequest, user: CurrentUserDep, source_service: SourceServiceDep) -> JSONResponse:
     """
     Add a new source to the system.
 
@@ -46,9 +47,16 @@ async def add_source(new_source: SourceRequest, user: CurrentUserDep, source_ser
         uri_type=new_source.uri_predefined_type,
     )
 
+    content = {"detail", "created succesfully"}
+    return JSONResponse(content=content, status_code=status.HTTP_201_CREATED)
+
 
 @router.delete("/", status_code=status.HTTP_202_ACCEPTED)
-async def remove_source(source: SourceNameRequest, user: CurrentUserDep, source_service: SourceServiceDep) -> None:
+async def remove_source(
+    source: SourceNameRequest,
+    user: CurrentUserDep,
+    source_service: SourceServiceDep,
+) -> JSONResponse:
     """
     Remove an existing source by its name.
 
@@ -61,5 +69,11 @@ async def remove_source(source: SourceNameRequest, user: CurrentUserDep, source_
         None
     """
     source_to_remove = await source_service.get_by_name(name=source.name)
-    if source_to_remove:
-        await source_service.remove(source_to_remove)
+    if not source_to_remove:
+        content = {"detail", "source with such name doesnt exist"}
+        return JSONResponse(content=content, status_code=status.HTTP_400_BAD_REQUEST)
+
+    await source_service.remove(source_to_remove)
+
+    content = {"detail", "deleted succesfully"}
+    return JSONResponse(content=content, status_code=status.HTTP_202_ACCEPTED)
