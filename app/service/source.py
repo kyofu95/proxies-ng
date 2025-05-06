@@ -1,5 +1,6 @@
 from uuid import UUID, uuid4
 
+from app.core.exceptions import AlreadyExistsError
 from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Protocol
 from app.models.source import Source, SourceHealth, SourceType
@@ -26,14 +27,23 @@ class SourceService:
         """
         Create a new proxy source with the given parameters and store it in database.
 
+        If a proxy source with the same name already exists, raises an 'AlreadyExistsError'.
+
         Args:
             name (str): The name of the proxy source.
             url (str): The URL associated with the proxy source.
             uri_type (Protocol | None): Optional URI type (proxy protocol) for the source. Defaults to None.
 
+        Raises:
+            AlreadyExistsError: If a source with the same name already exists.
+
         Returns:
             Source: The newly created proxy source object.
         """
+        existing_source = await self.get_by_name(name)
+        if existing_source:
+            raise AlreadyExistsError("Source with such name already exists")
+
         source = Source()
         source.id = uuid4()
         source.name = name

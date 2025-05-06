@@ -4,6 +4,7 @@ from uuid import uuid4
 import pytest
 import pytest_asyncio
 
+from app.core.exceptions import AlreadyExistsError
 from app.core.uow import SQLUnitOfWork
 from app.models.source import Source, SourceType
 from app.service.source import SourceService
@@ -43,6 +44,28 @@ async def test_create_source(service: SourceService, mock_uow: AsyncMock) -> Non
 
     mock_uow.source_repository.add.assert_called_once()
     assert result == mock_source
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_create_source_already_exists(service: SourceService, mock_uow: AsyncMock) -> None:
+    source_id = uuid4()
+    name = "Test Source"
+    uri = "http://localhost"
+    uri_type = None
+
+    mock_source = Source()
+    mock_source.id = source_id
+    mock_source.name = name
+    mock_source.uri = uri
+    mock_source.uri_predefined_type = uri_type
+    mock_source.type = SourceType.Text
+
+    mock_uow.source_repository.get_by_name.return_value = mock_source
+    with pytest.raises(AlreadyExistsError, match="Source with such name already exists"):
+        await service.create(name, uri)
+
+    mock_uow.source_repository.get_by_name.assert_called_once()
 
 
 @pytest.mark.unit
