@@ -35,7 +35,17 @@ function renderGrid() {
             'URL',
             'Type',
             'Total conn',
-            'Last used'
+            'Last used',
+            {
+                name: 'Actions',
+                formatter: (_, row) => {
+                    const name = row.cells[0].data;
+                    return gridjs.h('button', {
+                        className: 'btn btn-sm btn-danger',
+                        onclick: () => handleDeleteSource(name)
+                    }, 'Delete');
+                }
+            }
         ],
         className: {
             table: 'table table-striped table-hover'
@@ -91,6 +101,24 @@ function handleAddSource(event) {
                 const message = xhr.responseJSON?.detail || 'An unexpected error occurred.';
                 $('#sourceError').text(message).removeClass('d-none');
             }
+        }
+    });
+}
+
+function handleDeleteSource(name) {
+    if (!confirm(`Are you sure you want to delete the source "${name}"?`)) return;
+
+    $.ajax({
+        url: `${window.location.origin}/api/private/source/`,
+        method: 'DELETE',
+        contentType: 'application/json',
+        data: JSON.stringify({ name }),
+        success: function () {
+            renderGrid();
+        },
+        error: function (xhr) {
+            const message = xhr.responseJSON?.detail || 'Failed to delete source.';
+            $('#sourceError').text(message).removeClass('d-none').addClass('alert-danger');
         }
     });
 }
