@@ -47,7 +47,7 @@ async def add_source(new_source: SourceRequest, user: CurrentUserDep, source_ser
         uri_type=new_source.uri_predefined_type,
     )
 
-    content = {"detail", "created succesfully"}
+    content = {"detail": "created succesfully"}
     return JSONResponse(content=content, status_code=status.HTTP_201_CREATED)
 
 
@@ -75,5 +75,5 @@ async def remove_source(
 
     await source_service.remove(source_to_remove)
 
-    content = {"detail", "deleted succesfully"}
+    content = {"detail": "deleted succesfully"}
     return JSONResponse(content=content, status_code=status.HTTP_202_ACCEPTED)
