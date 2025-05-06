@@ -4,6 +4,8 @@ from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from starlette.types import ExceptionHandler as StarletteExceptionHandler
 
+from app.core.exceptions import AlreadyExistsError
+
 from .views.pages import templates
 
 
@@ -35,9 +37,30 @@ async def not_found_exception_handler(request: Request, _: HTTPException) -> JSO
     return templates.TemplateResponse("404.html", context=context, status_code=status.HTTP_404_NOT_FOUND)
 
 
+async def already_exists_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """
+    Handle AlreadyExistsError exceptions.
+
+    Returns a 409 Conflict response with a descriptive message.
+
+    Args:
+        request (Request): The incoming request object.
+        exc (HTTPException): The AlreadyExistsError exception.
+
+    Returns:
+        JSONResponse: JSON response with error details and 409 status.
+    """
+    content = {"detail": str(exc)}
+    return JSONResponse(content=content, status_code=status.HTTP_409_CONFLICT)
+
+
 def install_exception_handlers(api: FastAPI) -> None:
     """
     Install custom exception handlers for the FastAPI application.
+
+    Installs a handler for:
+    - 404 Not Found errors.
+    - AlreadyExistsError exceptions.
 
     Args:
         api (FastAPI): The FastAPI application instance to install exception handlers on.
@@ -49,4 +72,9 @@ def install_exception_handlers(api: FastAPI) -> None:
     api.add_exception_handler(
         status.HTTP_404_NOT_FOUND,
         typing.cast(StarletteExceptionHandler, not_found_exception_handler),
+    )
+
+    api.add_exception_handler(
+        AlreadyExistsError,
+        typing.cast(StarletteExceptionHandler, already_exists_exception_handler),
     )
