@@ -5,7 +5,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.models.proxy import Protocol
-from app.models.source import Source
+from app.models.source import Source, SourceHealth
+from app.service.source import SourceService
 from app.tasks.fetch_proxies import (
     check_list_of_proxies,
     check_proxy,
@@ -125,26 +126,49 @@ async def test_check_proxy_invalid(mock_check):
 @pytest.mark.unit
 @pytest.mark.asyncio
 @patch("app.tasks.fetch_proxies.download_proxy_list", new_callable=AsyncMock)
-async def test_fetch_all_proxy_lists_single_success(mock_download_proxy_list):
+@patch("app.service.source.SourceService.update", new_callable=AsyncMock)
+async def test_fetch_all_proxy_lists_updates_source_health(mock_update, mock_download_proxy_list):
     mock_download_proxy_list.return_value = [(IPv4Address("8.8.8.8"), 8080, Protocol.HTTP)]
-    sources = [Source(uri="http://example.com", uri_predefined_type=Protocol.HTTP)]
-    proxies = await fetch_all_proxy_lists(sources)
-    assert proxies[0][:2] == (IPv4Address("8.8.8.8"), 8080)
+
+    source = Source(
+        id=1,
+        uri="http://example.com",
+        uri_predefined_type=Protocol.HTTP,
+        health=SourceHealth(id=222, total_conn_attemps=0, failed_conn_attemps=0, last_used=None),
+    )
+
+    source_service = SourceService(uow=AsyncMock())
+    proxies = await fetch_all_proxy_lists([source], source_service)
+
+    assert proxies == [(IPv4Address("8.8.8.8"), 8080, Protocol.HTTP)]
+    assert source.health.total_conn_attemps == 1
+    assert source.health.failed_conn_attemps == 0
+    assert source.health.last_used is not None
+    mock_update.assert_called_once_with(source)
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
 @patch("app.tasks.fetch_proxies.download_proxy_list", new_callable=AsyncMock)
-async def test_fetch_all_proxy_lists_multiple_success(mock_download_proxy_list):
-    mock_download_proxy_list.return_value = [
-        (IPv4Address("8.8.8.8"), 80, Protocol.HTTP),
-        (IPv4Address("8.8.3.8"), 8080, Protocol.HTTPS),
-        (IPv4Address("8.8.8.2"), 1234, Protocol.SOCKS4),
-    ]
-    sources = [Source(uri="http://example.com", uri_predefined_type=Protocol.HTTP)]
-    proxies = await fetch_all_proxy_lists(sources)
-    assert len(proxies) == 3
-    assert (IPv4Address("8.8.8.8"), 80, Protocol.HTTP) in proxies
+@patch("app.service.source.SourceService.update", new_callable=AsyncMock)
+async def test_fetch_all_proxy_lists_failed_download_increments_failure(mock_update, mock_download_proxy_list):
+    mock_download_proxy_list.return_value = None
+
+    source = Source(
+        id=1,
+        uri="http://example.com",
+        uri_predefined_type=Protocol.HTTP,
+        health=SourceHealth(id=333, total_conn_attemps=0, failed_conn_attemps=0, last_used=None),
+    )
+
+    source_service = SourceService(uow=AsyncMock())
+    proxies = await fetch_all_proxy_lists([source], source_service)
+
+    assert proxies == []
+    assert source.health.total_conn_attemps == 1
+    assert source.health.failed_conn_attemps == 1
+    assert source.health.last_used is not None
+    mock_update.assert_called_once_with(source)
 
 
 @pytest.mark.unit

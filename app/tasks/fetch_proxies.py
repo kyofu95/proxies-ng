@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
@@ -10,6 +9,7 @@ from app.core.uow import SQLUnitOfWork
 from app.models.proxy import Protocol
 from app.models.source import Source
 from app.service.proxy import InitialHealth, ProxyService
+from app.service.source import SourceService
 
 from .utils.aws_check import check_proxy_with_aws
 from .utils.gather import cgather
@@ -140,27 +140,36 @@ async def check_proxy(
     return None
 
 
-async def fetch_all_proxy_lists(sources: list[Source]) -> list[tuple[IPAddress, int, Protocol]]:
+async def fetch_all_proxy_lists(
+    sources: list[Source],
+    source_service: SourceService,
+) -> list[tuple[IPAddress, int, Protocol]]:
     """
-    Fetch proxy lists from all provided sources and parses them.
+    Fetch and parse proxy lists from a set of source URLs.
+
+    Updates each source's connection attempt statistics.
 
     Args:
-        sources (list[Source]): List of proxy sources to fetch from.
+        sources (list[Source]): List of proxy sources.
+        source_service (SourceService): Service for updating source health.
 
     Returns:
-        list[tuple[IPAddress, int, Protocol]]: A list of all parsed proxies from all sources.
+        list[tuple[IPAddress, int, Protocol]]: Combined list of unchecked proxies.
     """
     unchecked_proxies: list[tuple[IPAddress, int, Protocol]] = []
 
-    fetch_tasks = [
-        download_proxy_list(source.uri, source.uri_predefined_type) for source in sources if source.uri_predefined_type
-    ]
+    for source in sources:
+        proxy_list_result = await download_proxy_list(source.uri, source.uri_predefined_type)
 
-    fetch_tasks_results = await cgather(*fetch_tasks, limit=5)
+        source.health.total_conn_attemps += 1
+        source.health.last_used = datetime.datetime.now(tz=datetime.timezone.utc)
+        if not proxy_list_result:
+            source.health.failed_conn_attemps += 1
 
-    # process list of lists to list
-    for proxy_list in fetch_tasks_results:
-        unchecked_proxies.extend(proxy_list)
+        await source_service.update(source)
+
+        if proxy_list_result:
+            unchecked_proxies.extend(proxy_list_result)
 
     return unchecked_proxies
 
@@ -192,21 +201,20 @@ async def fetch_proxies() -> None:
     # TODO(sny): split function into smaller functions
     session_factory = create_session_factory()
 
-    async with SQLUnitOfWork(session_factory) as uow:
-        sources = await uow.source_repository.get_all()
+    source_service = SourceService(SQLUnitOfWork(session_factory, raise_exc=False))
 
+    sources = await source_service.get_sources()
     if not sources:
         logger.debug("No proxy sources were found")
         return
 
-    geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
-
-    unchecked_proxies = await fetch_all_proxy_lists(sources)
+    unchecked_proxies = await fetch_all_proxy_lists(sources, source_service)
     if not unchecked_proxies:
         logger.debug("No valid proxies found in proxy sources")
         return
 
     proxy_service = ProxyService(SQLUnitOfWork(session_factory, raise_exc=False))
+    geoip_service = GeoIP(databasefile="geoip/GeoLite2-City.mmdb")
 
     chunk_size = 500
     for i in range(0, len(unchecked_proxies), chunk_size):
