@@ -6,7 +6,48 @@
 
 <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
 
+<div id="sourceError" class="alert alert-danger d-none" role="alert"></div>
+
 <div id="source-table"></div>
+
+<br>
+
+<div class="card">
+    <div class="card-header">
+        <h5>Add source</h5>
+    </div>
+    <div class="card-body">
+        <form id="addSourceForm">
+            <div class="form-floating mb-3" style="display: flex; gap: 10px; align-items: center;">
+
+                <div style="flex: 1;">
+                    <label for="nameInput">Source name</label>
+                    <input type="text" class="form-control" id="nameInput" required>
+                </div>
+
+
+                <div style="flex: 2;">
+                    <label for="urlInput">Source URL</label>
+                    <input type="text" class="form-control" id="urlInput" required>
+                </div>
+
+                <div style="flex: 1;">
+                    <label for="typeInput">Protocol</label>
+                    <select class="form-control" id="typeInput" required>
+                        <option value="HTTP">HTTP</option>
+                        <option value="HTTPS">HTTPS</option>
+                        <option value="SOCKS4">SOCKS4</option>
+                        <option value="SOCKS5">SOCKS5</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-primary">Add</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"
     integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>

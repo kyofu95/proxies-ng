@@ -55,6 +55,47 @@ function renderGrid() {
     }).render(document.getElementById("source-table"));
 }
 
+function handleAddSource(event) {
+    event.preventDefault();
+
+    const name = $('#nameInput').val();
+    const url = $('#urlInput').val();
+    const type = $('#typeInput').val();
+
+    if (!name || !url || !type) {
+        $('#sourceError').text('All fields are required').removeClass('d-none');
+        return;
+    }
+
+    $.ajax({
+        url: `${window.location.origin}/api/private/source/`,
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: name,
+            uri: url,
+            uri_predefined_type: type,
+            type: 1
+        }),
+        success: function () {
+            $('#sourceError').addClass('d-none');
+            $('#addSourceForm')[0].reset();
+            renderGrid();
+        },
+        error: function (xhr) {
+            if (xhr.status === 422) {
+                $('#sourceError').text('Invalid input. Please check the fields.').removeClass('d-none');
+            } else if (xhr.status === 409) {
+                $('#sourceError').text('Source already exists.').removeClass('d-none');
+            } else {
+                const message = xhr.responseJSON?.detail || 'An unexpected error occurred.';
+                $('#sourceError').text(message).removeClass('d-none');
+            }
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     renderGrid();
+    $('#addSourceForm').on('submit', handleAddSource);
 });
