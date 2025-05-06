@@ -95,16 +95,14 @@ class SourceRepository(BaseRepository[Source]):
                 "Entity has not been stored in database, but were marked for update.",
             )
 
-        stmt = update(Source).where(Source.id == entity.id).values(entity.to_dict())
-        await self.session.execute(stmt)
-
         if entity.health:
             stmt = update(SourceHealth).where(SourceHealth.id == entity.health.id).values(entity.health.to_dict())
             await self.session.execute(stmt)
 
-        await self.session.refresh(entity)
+        stmt = update(Source).where(Source.id == entity.id).values(entity.to_dict()).returning(Source)
+        result = await self.session.execute(stmt)
 
-        return entity
+        return result.scalar_one()
 
     async def remove(self, entity: Source) -> None:
         """

@@ -19,6 +19,11 @@ def make_a_source() -> Source:
     source.uri_predefined_type = None
     source.type = SourceType.Text
 
+    source.health = SourceHealth()
+    source.health.id = uuid4()
+    source.health.total_conn_attemps = 0
+    source.health.failed_conn_attemps = 0
+
     return source
 
 
@@ -56,16 +61,11 @@ async def test_source_repository_update(db_session_factory: async_sessionmaker[A
         stored_source = await uow.source_repository.get_by_id(source.id)
         assert stored_source
 
-        health = SourceHealth()
-        health.id = uuid4()
-        health.total_conn_attemps = 100
-        health.failed_conn_attemps = 0
-
-        stored_source.health = health
+        stored_source.health.total_conn_attemps = 100
 
         stored_source = await uow.source_repository.update(stored_source)
         assert stored_source.health
-        assert stored_source.health.total_conn_attemps == health.total_conn_attemps
+        assert stored_source.health.total_conn_attemps == 100
 
 
 @pytest.mark.integration

@@ -76,7 +76,7 @@ class Source(Base):
         SA_Enum(SourceType, values_callable=lambda obj: [e.name for e in obj]),
     )
 
-    health: Mapped[SourceHealth | None] = relationship(
+    health: Mapped[SourceHealth] = relationship(
         back_populates="source",
         cascade="all, delete-orphan",
         lazy="joined",
