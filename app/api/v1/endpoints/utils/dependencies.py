@@ -9,6 +9,22 @@ from app.service.source import SourceService
 from app.service.user import UserService
 
 
+def get_uow() -> SQLUnitOfWork:
+    """
+    Dependency provider for SQLUnitOfWork.
+
+    Initializes a SQLUnitOfWork using the asynchronous session factory.
+
+    Returns:
+        SQLUnitOfWork: A unit of work instance for database operations.
+    """
+    return SQLUnitOfWork(async_session_factory)
+
+
+UnitOfWorkDep = Annotated[SQLUnitOfWork, Depends(get_uow)]
+"""Dependency for providing a SQLUnitOfWork instance."""
+
+
 def get_proxy_service() -> ProxyService:
     """
     Dependency function that provides an instance of ProxyService.
