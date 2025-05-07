@@ -96,3 +96,23 @@ async def source(request: Request, is_logged: IsLoggedDep) -> HTMLResponse | Red
 
     context = {"request": request}
     return templates.TemplateResponse("source.html", context=context)
+
+
+@router.get("/user", status_code=status.HTTP_200_OK, response_model=None)
+async def user(request: Request, is_logged: IsLoggedDep) -> HTMLResponse | RedirectResponse:
+    """
+    Render the user profile or settings page if the user is logged in; otherwise, redirect to login.
+
+    Args:
+        request (Request): The incoming HTTP request.
+        is_logged (IsLoggedDep): Dependency that indicates if the user is authenticated.
+
+    Returns:
+        HTMLResponse: Rendered 'user.html' template if the user is authenticated.
+        RedirectResponse: Redirect to the login page if the user is not authenticated.
+    """
+    if not is_logged:
+        return RedirectResponse(request.url_for("login"), status_code=status.HTTP_302_FOUND)
+
+    context = {"request": request}
+    return templates.TemplateResponse("user.html", context=context)
