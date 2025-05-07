@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
 from app.core.security import JWT
@@ -19,24 +19,18 @@ async def login(user_data: LoginRequest, service: UserServiceDep) -> JSONRespons
         user_data (LoginRequest): The login credentials of the user (username and password).
         service (UserServiceDep): The service responsible for retrieving user data.
 
-    Raises:
-        HTTPException: If the login credentials are incorrect, a 401 error is raised.
-
     Returns:
         JSONResponse: A response containing a message indicating that the user has logged in.
     """
     user = await service.get_by_login_with_auth(user_data.username, user_data.password)
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect login or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        content = {"detail": "incorrect login or password"}
+        return JSONResponse(content=content, status_code=status.HTTP_401_UNAUTHORIZED)
 
     access_token = JWT.encode(str(user.id))
 
-    content = {"message": "logged in"}
+    content = {"detail": "logged in"}
 
     response = JSONResponse(content=content)
 
@@ -61,7 +55,7 @@ async def logout(_: CurrentUserDep) -> JSONResponse:
     Returns:
         JSONResponse: A response containing a message indicating that the user has logged out.
     """
-    content = {"message": "logged out"}
+    content = {"detail": "logged out"}
 
     response = JSONResponse(content=content)
 
