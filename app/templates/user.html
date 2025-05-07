@@ -1,0 +1,35 @@
+{% extends 'dashboard_base.html' %}
+
+{% block dashboard_content %}
+
+<br>
+
+<div class="card col-sm-4">
+    <div class="card-header">
+        <h5>Change Password</h5>
+    </div>
+    <div class="card-body">
+        <div id="passwordChangeError" class="alert alert-danger d-none" role="alert"></div>
+        <form id="changePasswordForm">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" class="form-control" id="currentPassword" required>
+
+            <label for="newPassword">New Password</label>
+            <input type="password" class="form-control" id="newPassword" required>
+
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" class="form-control" id="confirmPassword" required>
+
+            <br>
+
+            <button type="submit" class="btn btn-primary">Change</button>
+        </form>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+    integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', path='js/user.js') }}"></script>
+
+{% endblock %}
