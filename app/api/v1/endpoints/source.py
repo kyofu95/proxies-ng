@@ -70,7 +70,7 @@ async def remove_source(
     """
     source_to_remove = await source_service.get_by_name(name=source.name)
     if not source_to_remove:
-        content = {"detail", "source with such name doesnt exist"}
+        content = {"detail": "source with such name doesnt exist"}
         return JSONResponse(content=content, status_code=status.HTTP_400_BAD_REQUEST)
 
     await source_service.remove(source_to_remove)
