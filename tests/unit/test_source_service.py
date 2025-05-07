@@ -39,9 +39,11 @@ async def test_create_source(service: SourceService, mock_uow: AsyncMock) -> Non
     mock_source.uri_predefined_type = uri_type
     mock_source.type = SourceType.Text
 
+    mock_uow.source_repository.get_by_name.return_value = None
     mock_uow.source_repository.add.return_value = mock_source
     result = await service.create(name, uri)
 
+    mock_uow.source_repository.get_by_name.assert_called_once_with(name)
     mock_uow.source_repository.add.assert_called_once()
     assert result == mock_source
 
