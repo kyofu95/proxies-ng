@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from ipaddress import IPv4Address
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
@@ -218,7 +218,7 @@ async def test_build_with_health(service: ProxyService, mock_uow: AsyncMock) -> 
     login = "user"
     password = "pass"
     latency = 123
-    tested_at = datetime.utcnow()
+    tested_at = datetime.now(tz=timezone.utc)
 
     proxy = await service._build(
         address=ip_address,
@@ -252,7 +252,7 @@ async def test_build_with_health_and_location(service: ProxyService, mock_uow: A
     login = "user"
     password = "pass"
     latency = 123
-    tested_at = datetime.utcnow()
+    tested_at = datetime.now(tz=timezone.utc)
 
     fake_geo_address = ProxyAddress()
     fake_geo_address.id = uuid4()
