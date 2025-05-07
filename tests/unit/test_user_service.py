@@ -149,3 +149,24 @@ async def test_remove_user(service: UserService, mock_uow: AsyncMock):
     await service.remove(user)
 
     mock_uow.user_repository.remove.assert_called_once_with(user)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+@patch("app.service.user.PasswordHasher.hash", return_value="new_hashed_password")
+async def test_change_password(mock_hash, service: UserService, mock_uow: AsyncMock):
+    login = "test_user"
+    password = "password123"
+    user_id = uuid4()
+    existing_user = User(id=user_id, login=login, password="hashed_password")
+
+    new_password = "new_password"
+
+    mock_uow.user_repository.update.return_value = existing_user
+
+    user = await service.change_password(existing_user, new_password)
+
+    mock_uow.user_repository.update.assert_called_once()
+    assert user == existing_user
+    assert user.password == "new_hashed_password"
+    mock_hash.assert_called_once_with(new_password)

@@ -125,3 +125,23 @@ class UserService:
         """
         async with self.uow as uow:
             return await uow.user_repository.remove(user)
+
+    async def change_password(self, user: User, new_plain_password: str) -> User:
+        """
+        Change the password of an existing user.
+
+        This method hashes the new plaintext password and updates the user
+        in the database with the new hashed password.
+
+        Args:
+            user (User): The user whose password is to be changed.
+            new_plain_password (str): The new plaintext password.
+
+        Returns:
+            User: The updated user object with the new hashed password.
+        """
+        new_hashed_password = PasswordHasher.hash(new_plain_password)
+
+        user.password = new_hashed_password
+
+        return await self.update(user)
