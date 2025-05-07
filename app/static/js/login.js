@@ -22,11 +22,8 @@ $(function () {
                 window.location.href = '/dashboard';
             },
             error: function (xhr) {
-                if (xhr.status === 401) {
-                    $('#loginError').text('Incorrect username or password.').removeClass('d-none');
-                } else {
-                    $('#loginError').text('Unexpected error occurred.').removeClass('d-none');
-                }
+                const message = xhr.responseJSON?.detail || 'Incorrect username or password.';
+                $('#loginError').text(message).removeClass('d-none');
             }
         });
     });
