@@ -10,10 +10,6 @@ $(function () {
             return;
         }
 
-        const data = new URLSearchParams();
-        data.append('username', username);
-        data.append('password', password);
-
         $.ajax({
             type: 'POST',
             url: '/api/private/auth/login',
