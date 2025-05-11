@@ -1,12 +1,24 @@
 services:
+  caddy:
+    image: caddy:2.10.0
+    container_name: caddy
+    ports:
+      - "80:80"
+    volumes:
+      - ./caddy/Caddyfile.dev:/etc/caddy/Caddyfile
+      - /caddy/data:/data
+      - /caddy/config:/config
+    depends_on:
+      - fastapi
+    networks:
+      - backend
+
   fastapi:
     build: .
     container_name: fastapi_app
     environment:
       DATABASE_HOST: postgres
       REDIS_HOST: redis
-    ports:
-      - "8000:8000"
     depends_on:
       - postgres
       - redis
@@ -14,7 +26,7 @@ services:
       - celery_beat
     networks:
       - backend
-  
+
   postgres:
     image: postgres:17.4
     container_name: postgres
@@ -25,7 +37,7 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
       interval: 5s
       timeout: 2s
       retries: 10
@@ -36,7 +48,7 @@ services:
     image: redis:7.4
     container_name: redis
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -72,6 +84,7 @@ services:
 
 volumes:
   postgres_data:
+
 
 networks:
   backend:
