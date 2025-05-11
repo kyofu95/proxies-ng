@@ -4,6 +4,24 @@ from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class CommonSettings(BaseSettings):
+    """
+    Common configuration settings, such as CORS configuration, loaded from environment variables.
+
+    Attributes:
+        cors_origins (str | None): Comma-separated list of allowed CORS origins.
+    """
+
+    cors_origins: str | None = Field(
+        alias="CORS_ORIGINS",
+        default=None,
+        description="If not set, will be set to [*], otherwise 'domain_a,domain_b' will be a list of domains",
+    )
+
+
+common_settings = CommonSettings()
+
+
 class DatabaseSettings(BaseSettings):
     """
     Configuration settings for the database, loaded from environment variables.

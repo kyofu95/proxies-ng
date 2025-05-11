@@ -4,10 +4,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.api import api_router
-from app.core.config import jwt_settings
+from app.core.config import common_settings, jwt_settings
 from app.views.pages import router as pages_router
 
 from .error_handlers import install_exception_handlers
@@ -66,6 +67,23 @@ def create_app() -> FastAPI:
 
     if jwt_settings.secret_key == "0":
         logger.warning("jwt secret key set to default value")
+
+    # setup CORS
+    origins = ["*"]  # allow all origins by default
+
+    if common_settings.cors_origins:
+        origins = common_settings.cors_origins.split(sep=",")  # assume cors_origins is a listing of multiple domains
+        if not origins:
+            origins = common_settings.cors_origins  # assume cors_origins is a single domain
+
+    api.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["X-Requested-With", "X-Request-ID"],
+        expose_headers=["X-Request-ID"],
+    )
 
     return api
 
