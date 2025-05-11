@@ -1,0 +1,92 @@
+services:
+  caddy:
+    image: caddy:2.10.0
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - /caddy/data:/data
+      - /caddy/config:/config
+    depends_on:
+      - fastapi
+    networks:
+      - backend
+
+  fastapi:
+    build: .
+    container_name: fastapi_app
+    environment:
+      DATABASE_HOST: postgres
+      REDIS_HOST: redis
+    depends_on:
+      - postgres
+      - redis
+      - celery_worker
+      - celery_beat
+    networks:
+      - backend
+
+  postgres:
+    image: postgres:17.4
+    container_name: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+    networks:
+      - backend
+
+  redis:
+    image: redis:7.4
+    container_name: redis
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
+  celery_worker:
+    build: .
+    container_name: celery_worker
+    entrypoint: ""
+    command: celery -A app.tasks.celery:celery_app worker --loglevel=INFO -Q default,celery
+    volumes:
+      - ./geoip:/fastapi_project/geoip
+    environment:
+      DATABASE_HOST: postgres
+      REDIS_HOST: redis
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  celery_beat:
+    build: .
+    container_name: celery_beat
+    entrypoint: ""
+    command: celery -A app.tasks.celery:celery_app beat --loglevel=INFO
+    environment:
+      REDIS_HOST: redis
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+
+
+networks:
+  backend:
+    driver: bridge
