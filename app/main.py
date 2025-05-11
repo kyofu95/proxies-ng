@@ -74,7 +74,7 @@ def create_app() -> FastAPI:
     if common_settings.cors_origins:
         origins = common_settings.cors_origins.split(sep=",")  # assume cors_origins is a listing of multiple domains
         if not origins:
-            origins = common_settings.cors_origins  # assume cors_origins is a single domain
+            origins = [common_settings.cors_origins]  # assume cors_origins is a single domain
 
     api.add_middleware(
         CORSMiddleware,
