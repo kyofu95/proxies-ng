@@ -30,7 +30,8 @@ async def health_check(unit_of_work: UnitOfWorkDep) -> HealthResponse:
     """
     async with unit_of_work as uow:
         try:
-            await asyncio.wait_for(uow.session.execute(sa_text("SELECT 1")), timeout=1)
+            if uow.session:  # make sure session is not None
+                await asyncio.wait_for(uow.session.execute(sa_text("SELECT 1")), timeout=1)
         except TimeoutError as exc:
             raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="backend failure") from exc
 
