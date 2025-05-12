@@ -146,7 +146,7 @@ class JWTSettings(BaseSettings):
         access_token_expiry (int): The time in minutes before the access token expires. Defaults to 30 minutes.
     """
 
-    secret_key: str = Field(alias="JWT_SECRET_KEY", default="0")
+    secret_key: str = Field(alias="JWT_SECRET_KEY")
     algorithm: str = "HS256"
     access_token_expiry: int = 30  # 30 minutes
 

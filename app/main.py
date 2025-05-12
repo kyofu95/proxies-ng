@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.api.api import api_router
-from app.core.config import common_settings, jwt_settings
+from app.core.config import common_settings
 from app.views.pages import router as pages_router
 
 from .error_handlers import install_exception_handlers
@@ -64,9 +64,6 @@ def create_app() -> FastAPI:
     api.include_router(api_router)
 
     install_exception_handlers(api)
-
-    if jwt_settings.secret_key == "0":
-        logger.warning("jwt secret key set to default value")
 
     # setup CORS
     origins = ["*"]  # allow all origins by default
