@@ -1,5 +1,10 @@
 ## Installation
 
+Note: To run the development version locally, make sure to add the domain name used by the application (e.g. example.local) to your /etc/hosts file:
+ ```sh
+ 127.0.0.1 example.local
+ ```
+
 Before running the tests, you need to download the GeoIP database.
 
 1. Create the `geoip` directory:
