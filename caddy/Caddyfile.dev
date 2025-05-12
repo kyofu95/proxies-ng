@@ -4,7 +4,7 @@
 }
 
 
-https:// {
+{$DOMAIN_NAME} {
     reverse_proxy fastapi:8000
     tls internal {
         on_demand
