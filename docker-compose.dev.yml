@@ -17,9 +17,13 @@ services:
   fastapi:
     build: .
     container_name: fastapi_app
+    command: sh -c "
+            alembic upgrade head
+            && python3 -m app.init_data"
     environment:
       DATABASE_HOST: postgres
       REDIS_HOST: redis
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     depends_on:
       - postgres
       - redis
@@ -66,6 +70,7 @@ services:
     environment:
       DATABASE_HOST: postgres
       REDIS_HOST: redis
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     depends_on:
       - redis
     networks:
@@ -78,6 +83,7 @@ services:
     command: celery -A app.tasks.celery:celery_app beat --loglevel=DEBUG
     environment:
       REDIS_HOST: redis
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     depends_on:
       - redis
     networks:
