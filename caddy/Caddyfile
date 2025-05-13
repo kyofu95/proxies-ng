@@ -15,9 +15,9 @@
 
     rate_limit {
         zone default {
-                key {remote_host}
-                events 20
-                window 1m
+            key {remote_host}
+            events 20
+            window 1m
         }
     }
 }
