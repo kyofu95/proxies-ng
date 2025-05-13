@@ -4,8 +4,18 @@
         format console
         level INFO
     }
+
+    order rate_limit before basicauth
 }
 
 {$DOMAIN_NAME} {
     reverse_proxy fastapi:8000
+
+    rate_limit {
+        zone default {
+                key {remote_host}
+                events 20
+                window 1m
+        }
+    }
 }
