@@ -1,8 +1,13 @@
 {
     local_certs
     debug
-}
 
+    log default {
+        output stdout
+        format console
+        level DEBUG
+    }
+}
 
 {$DOMAIN_NAME} {
     reverse_proxy fastapi:8000
