@@ -9,6 +9,8 @@
 }
 
 {$DOMAIN_NAME} {
+    encode gzip zstd
+
     reverse_proxy fastapi:8000
 
     rate_limit {
