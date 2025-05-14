@@ -7,6 +7,7 @@ services:
       - "80:80"
       - "443:443"
     environment:
+      DEBUG: True
       DOMAIN_NAME: ${DOMAIN_NAME}
       EMAIL: ${EMAIL}
     volumes:
@@ -28,6 +29,8 @@ services:
       DATABASE_HOST: postgres
       REDIS_HOST: redis
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    volumes:
+      - ./uvicorn_logging.yml:/fastapi_project/uvicorn_logging.yml:ro
     depends_on:
       - postgres
       - redis

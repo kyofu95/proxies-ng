@@ -1,0 +1,49 @@
+version: 1
+disable_existing_loggers: true
+
+filters:
+  correlation_id:
+    (): asgi_correlation_id.CorrelationIdFilter
+
+formatters:
+  standard:
+    format: "%(asctime)s [%(levelname)s] [%(correlation_id)s] %(name)s: %(message)s"
+  custom_formatter:
+    format: "%(asctime)s [%(processName)s: %(process)d] [%(levelname)s] [%(correlation_id)s] %(name)s: %(message)s"
+
+handlers:
+  default:
+    class: logging.StreamHandler
+    formatter: standard
+    stream: ext://sys.stdout
+    filters: [correlation_id]
+  stream_handler:
+    class: logging.StreamHandler
+    formatter: custom_formatter
+    stream: ext://sys.stdout
+    filters: [correlation_id]
+  file_handler:
+    class: logging.handlers.RotatingFileHandler
+    formatter: custom_formatter
+    filename: app.log
+    maxBytes: 1048576  # 1024 * 1024 = 1MB
+    backupCount: 3
+    filters: [correlation_id]
+
+loggers:
+  uvicorn:
+    level: DEBUG
+    handlers: [default, file_handler]
+    propagate: false
+  uvicorn.access:
+    level: DEBUG
+    handlers: [stream_handler, file_handler]
+    propagate: false
+  uvicorn.error:
+    level: DEBUG
+    handlers: [stream_handler, file_handler]
+    propagate: false
+  uvicorn.asgi:
+    level: DEBUG
+    handlers: [stream_handler, file_handler]
+    propagate: false
