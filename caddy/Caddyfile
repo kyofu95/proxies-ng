@@ -13,10 +13,22 @@
 {$DOMAIN_NAME} {
     encode gzip zstd
 
-    reverse_proxy fastapi:8000
-
     header {
         -Server
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    reverse_proxy fastapi:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        header_down Cache-Control "public, max-age=600"
+        header_down Vary "Accept-Encoding"
     }
 
     rate_limit {
