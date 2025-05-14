@@ -8,6 +8,7 @@ services:
       - "443:443"
     environment:
       DOMAIN_NAME: ${DOMAIN_NAME}
+      EMAIL: ${EMAIL}
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
       - /caddy/data:/data

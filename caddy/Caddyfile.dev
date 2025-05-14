@@ -1,4 +1,6 @@
 {
+    email {$EMAIL}
+
     local_certs
     debug
 

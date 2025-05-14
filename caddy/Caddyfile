@@ -1,4 +1,6 @@
 {
+    email {$EMAIL}
+
     log default {
         output stdout
         format console
