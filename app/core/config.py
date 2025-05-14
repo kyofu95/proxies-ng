@@ -9,8 +9,11 @@ class CommonSettings(BaseSettings):
     Common configuration settings, such as CORS configuration, loaded from environment variables.
 
     Attributes:
+        debug (bool): Enables debug mode when set to True.
         cors_origins (str | None): Comma-separated list of allowed CORS origins.
     """
+
+    debug: bool = Field(alias="DEBUG", default=False)
 
     cors_origins: str | None = Field(
         alias="CORS_ORIGINS",

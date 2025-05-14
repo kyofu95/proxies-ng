@@ -1,8 +1,10 @@
 import logging
+import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+from asgi_correlation_id import CorrelationIdFilter, CorrelationIdMiddleware, correlation_id
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -35,6 +37,28 @@ async def app_lifespan(_: FastAPI) -> AsyncIterator[None]:
     yield
 
 
+def init_logger() -> None:
+    """Initialize and configure the application logger."""
+    logger = logging.getLogger(__name__)
+
+    formatter = logging.Formatter(
+        "%(asctime)s [%(processName)s: %(process)d] [%(levelname)s] [%(correlation_id)s] %(name)s: %(message)s",
+    )
+
+    cid_filter = CorrelationIdFilter(uuid_length=32)
+
+    console = logging.StreamHandler(sys.stdout)
+    console.setFormatter(formatter)
+    console.addFilter(cid_filter)
+
+    logger.addHandler(console)
+
+    if common_settings.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+
+
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application.
@@ -45,6 +69,11 @@ def create_app() -> FastAPI:
     Returns:
         FastAPI: The configured FastAPI application instance.
     """
+    init_logger()
+
+    logger = logging.getLogger(__name__)
+    logger.info("Application startup")
+
     api = FastAPI(
         title="Proxies-NG",
         version="0.1",
@@ -64,6 +93,9 @@ def create_app() -> FastAPI:
     api.include_router(api_router)
 
     install_exception_handlers(api)
+
+    # setup correlation id
+    api.add_middleware(CorrelationIdMiddleware)
 
     # setup CORS
     origins = ["*"]  # allow all origins by default
