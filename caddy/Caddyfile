@@ -26,6 +26,7 @@
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto {scheme}
+        header_up X-Request-ID {http.request.uuid}
 
         header_down Cache-Control "public, max-age=600"
         header_down Vary "Accept-Encoding"
