@@ -10,6 +10,7 @@ and proxy metadata resolution.
 
 import asyncio
 import logging
+import os
 from uuid import uuid4
 
 import pycountry
@@ -18,6 +19,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from app.core.database import create_session_factory
 from app.core.uow import SQLUnitOfWork
 from app.models.country import Country
+from app.service.user import UserService
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +51,27 @@ async def init_countries() -> None:
             await uow.session.execute(stmt)
         else:
             logger.debug("UoW seesion is not initialized")
+
+
+async def init_admin() -> None:
+    """
+    Create an admin user if it does not already exist.
+
+    The login and password are read from the environment variables ADMIN_LOGIN and ADMIN_PASSWORD.
+    """
+    logger.info("Creating admin")
+
+    session_factory = create_session_factory()
+    user_service = UserService(SQLUnitOfWork(session_factory, raise_exc=False))
+
+    login = os.getenv("ADMIN_LOGIN", "admin")
+    password = os.getenv("ADMIN_PASSWORD", "password")
+
+    admin = await user_service.get_by_login(login)
+    if not admin:
+        admin = await user_service.create(login, password)
+    else:
+        logger.info("Admin already exist")
 
 
 asyncio.run(init_countries())
