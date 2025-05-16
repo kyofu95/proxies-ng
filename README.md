@@ -62,6 +62,13 @@ alembic upgrade head
 ```sh
 python3 -m app.init_data
 ```
+This command fills lookup tables and creates a default administrative user.
+By default, the admin account will be created with login: admin and password: admin
+Please change these credentials immediately after the first login to ensure security.
+You can override the default credentials by setting the environment variables ADMIN_LOGIN and ADMIN_PASSWORD before running the command. For example:
+```sh
+ADMIN_LOGIN=superadmin ADMIN_PASSWORD=strongpassword python3 -m app.init_data
+```
 
 ## Testing
 **Note**: Before running the tests, you need to download the GeoIP database. Refer to Installation.
