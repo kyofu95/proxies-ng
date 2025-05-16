@@ -10,7 +10,7 @@
     order rate_limit before basicauth
 }
 
-{$DOMAIN_NAME} {
+https://{$DOMAIN_NAME} {
     encode gzip zstd
 
     header {
