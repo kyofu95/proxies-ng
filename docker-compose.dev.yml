@@ -26,6 +26,7 @@ services:
             alembic upgrade head
             && python3 -m app.init_data"
     environment:
+      DEBUG: True
       DATABASE_HOST: postgres
       REDIS_HOST: redis
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
