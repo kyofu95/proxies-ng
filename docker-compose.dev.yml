@@ -29,6 +29,7 @@ services:
       DATABASE_HOST: postgres
       REDIS_HOST: redis
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS}
     volumes:
       - ./uvicorn_logging.yml:/fastapi_project/uvicorn_logging.yml:ro
     depends_on:
