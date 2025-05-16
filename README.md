@@ -96,4 +96,4 @@ Integration tests are marked with `integration` and can be executed in two ways:
   ```sh
   pytest tests/integration
   ```
-Integration tests use testcontainers to provide real service dependencies, making them slower than unit tests.
+**Note**: Integration tests use testcontainers to provide real service dependencies, making them slower than unit tests.
