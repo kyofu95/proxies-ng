@@ -10,16 +10,14 @@ class CommonSettings(BaseSettings):
 
     Attributes:
         debug (bool): Enables debug mode when set to True.
-        cors_origins (str | None): Comma-separated list of allowed CORS origins.
+        cors_origins (list[str]): List of allowed CORS origins.
     """
 
     debug: bool = Field(alias="DEBUG", default=False)
 
-    cors_origins: str | None = Field(
-        alias="CORS_ORIGINS",
-        default=None,
-        description="If not set, will be set to [*], otherwise 'domain_a,domain_b' will be a list of domains",
-    )
+    cors_origins: list[str] = Field(alias="CORS_ORIGINS", default=["*"])
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 common_settings = CommonSettings()

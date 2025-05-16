@@ -97,17 +97,9 @@ def create_app() -> FastAPI:
     # setup correlation id
     api.add_middleware(CorrelationIdMiddleware)
 
-    # setup CORS
-    origins = ["*"]  # allow all origins by default
-
-    if common_settings.cors_origins:
-        origins = common_settings.cors_origins.split(sep=",")  # assume cors_origins is a listing of multiple domains
-        if not origins:
-            origins = [common_settings.cors_origins]  # assume cors_origins is a single domain
-
     api.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=common_settings.cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["X-Requested-With", "X-Request-ID"],
