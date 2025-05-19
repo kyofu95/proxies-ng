@@ -17,6 +17,8 @@ class CommonSettings(BaseSettings):
 
     cors_origins: list[str] = Field(alias="CORS_ORIGINS", default=["*"])
 
+    admin_password: str = Field(alias="DEFAULT_ADMIN_PASSWORD", default="admin")
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
