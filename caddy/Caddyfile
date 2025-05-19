@@ -10,7 +10,7 @@
     order rate_limit before basicauth
 }
 
-https://{$DOMAIN_NAME} {
+{$DOMAIN_NAME} {
     encode gzip zstd
 
     header {
@@ -19,6 +19,19 @@ https://{$DOMAIN_NAME} {
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
         Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    route /metrics* {
+        @external_network {
+            not {
+                remote_ip 10.0.0.0/24
+            }
+        }
+        handle @external_network {
+            rewrite * /404.html
+            reverse_proxy fastapi:8000
+        }
+        reverse_proxy fastapi:8000
     }
 
     reverse_proxy fastapi:8000 {
@@ -46,4 +59,10 @@ https://{$DOMAIN_NAME} {
         }
         respond ""
     }
+}
+
+grafana.{$DOMAIN_NAME} {
+    encode gzip zstd
+
+    reverse_proxy grafana:3000
 }
