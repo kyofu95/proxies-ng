@@ -8,6 +8,7 @@ from asgi_correlation_id import CorrelationIdFilter, CorrelationIdMiddleware, co
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.api import api_router
 from app.core.config import common_settings
@@ -105,6 +106,9 @@ def create_app() -> FastAPI:
         allow_headers=["X-Requested-With", "X-Request-ID"],
         expose_headers=["X-Request-ID"],
     )
+
+    # setup metrics
+    Instrumentator().instrument(api).expose(api)
 
     return api
 
