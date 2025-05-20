@@ -53,7 +53,7 @@ function renderGrid() {
         sort: false,
         search: false,
         server: {
-            url: `${window.location.origin}/api/private/source/all/`,
+            url: `${window.location.origin}/api/private/source/all`,
             then: data => data.map(source => [
                 source.name,
                 source.uri,
