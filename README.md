@@ -63,7 +63,7 @@ alembic upgrade head
 python3 -m app.init_data
 ```
 This command fills lookup tables and creates a default administrative user.
-By default, the admin account will be created with login: admin and password: admin
+By default, the admin account will be created with login: admin and password: password
 Please change these credentials immediately after the first login to ensure security.
 You can override the default credentials by setting the environment variables ADMIN_LOGIN and ADMIN_PASSWORD before running the command. For example:
 ```sh
