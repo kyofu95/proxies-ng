@@ -24,8 +24,10 @@ from app.service.user import UserService
 
 logger = logging.getLogger(__name__)
 
-# output info to stdout
+# output info to stdout with info level
 console = logging.StreamHandler(sys.stdout)
+logger.setLevel(logging.INFO)
+console.setLevel(logging.INFO)
 logger.addHandler(console)
 
 
@@ -55,7 +57,7 @@ async def init_countries() -> None:
         if uow.session:
             await uow.session.execute(stmt)
         else:
-            logger.debug("UoW seesion is not initialized")
+            logger.warning("UoW seesion is not initialized")
 
 
 async def init_admin() -> None:
@@ -76,7 +78,12 @@ async def init_admin() -> None:
     if not admin:
         admin = await user_service.create(login, password)
     else:
-        logger.info("Admin already exist")
+        logger.warning("Admin already exist")
+
+    if admin:
+        logger.warning("Admin account succesfully created")
+    else:
+        logger.warning("Admin account failure")
 
 
 asyncio.run(init_countries())
