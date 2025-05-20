@@ -35,11 +35,11 @@ Pay special attention to the following variables:
 #### 4. Start the application using Docker Compose
 For production:
 ```sh
-docker compose --env-file .env -f docker-compose.yml up --build
+docker compose --env-file .env -f docker-compose.yml up -d --build
 ```
 For development:
 ```sh
-docker compose --env-file .env -f docker-compose.dev.yml up --build 
+docker compose --env-file .env -f docker-compose.dev.yml up -d --build 
 ```
 **Note**: To run the development version locally, make sure to add the domain name used by the application (e.g. example.local) to your /etc/hosts file:
  ```sh
