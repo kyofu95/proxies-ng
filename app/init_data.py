@@ -11,6 +11,7 @@ and proxy metadata resolution.
 import asyncio
 import logging
 import os
+import sys
 from uuid import uuid4
 
 import pycountry
@@ -22,6 +23,10 @@ from app.models.country import Country
 from app.service.user import UserService
 
 logger = logging.getLogger(__name__)
+
+# output info to stdout
+console = logging.StreamHandler(sys.stdout)
+logger.addHandler(console)
 
 
 async def init_countries() -> None:
