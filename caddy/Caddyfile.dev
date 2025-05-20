@@ -30,7 +30,7 @@ https://{$DOMAIN_NAME} {
     rate_limit {
         zone default {
             key {remote_host}
-            events 25
+            events 50
             window 1m
         }
     }
