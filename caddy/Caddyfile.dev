@@ -24,6 +24,7 @@ https://{$DOMAIN_NAME} {
 
     reverse_proxy fastapi:8000 {
         header_up X-Request-ID {http.request.uuid}
+        header_up X-Forwarded-Proto {scheme}
     }
 
     rate_limit {
