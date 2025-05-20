@@ -86,4 +86,15 @@ async def init_admin() -> None:
         logger.warning("Admin account failure")
 
 
-asyncio.run(init_countries())
+async def main() -> None:
+    """
+    Entry point for initializing database with countries and admin user.
+
+    Executes both 'init_countries' and 'init_admin' functions to
+    ensure the database is properly seeded before running the server.
+    """
+    await init_countries()
+    await init_admin()
+
+
+asyncio.run(main())
