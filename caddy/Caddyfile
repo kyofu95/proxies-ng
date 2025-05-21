@@ -22,16 +22,10 @@
     }
 
     route /metrics* {
-        @external_network {
-            not {
-                remote_ip 10.0.0.0/24
-            }
-        }
-        handle @external_network {
+        handle {
             rewrite * /404.html
             reverse_proxy fastapi:8000
         }
-        reverse_proxy fastapi:8000
     }
 
     reverse_proxy fastapi:8000 {
