@@ -4,11 +4,9 @@
     local_certs
     debug
 
-	servers {
-		metrics {
-            per_host
-        }
-	}
+    metrics {
+        per_host
+    }
 
     log default {
         output stdout
