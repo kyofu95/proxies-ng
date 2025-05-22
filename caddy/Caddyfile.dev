@@ -4,6 +4,10 @@
     local_certs
     debug
 
+    metrics {
+        per_host
+    }
+
     log default {
         output stdout
         format console
@@ -13,13 +17,20 @@
     order rate_limit before basicauth
 }
 
-https://{$DOMAIN_NAME} {
+{$DOMAIN_NAME} {
     tls internal {
         on_demand
     }
 
     header {
         -Server
+    }
+
+    route /metrics* {
+        handle {
+            rewrite * /404.html
+            reverse_proxy fastapi:8000
+        }
     }
 
     reverse_proxy fastapi:8000 {
@@ -41,4 +52,25 @@ https://{$DOMAIN_NAME} {
         }
         respond ""
     }
+}
+
+grafana.{$DOMAIN_NAME} {
+    tls internal {
+        on_demand
+    }
+
+    reverse_proxy grafana:3000
+}
+
+:9000 {
+    @external_network {
+        not {
+            remote_ip 10.10.0.0/16
+        }
+    }
+    handle @external_network {
+        respond 403 ""
+    }
+
+    metrics
 }
