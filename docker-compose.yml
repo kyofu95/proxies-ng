@@ -93,6 +93,19 @@ services:
     networks:
       - backend
 
+  flower:
+    build: .
+    container_name: celery_flower
+    entrypoint: ""
+    command: celery -A app.tasks.celery:celery_app flower --port=9800
+    environment:
+      REDIS_HOST: redis
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    depends_on:
+      - redis
+    networks:
+      - backend
+
   prometheus:
     image: prom/prometheus:v3.4.0
     container_name: prometheus
