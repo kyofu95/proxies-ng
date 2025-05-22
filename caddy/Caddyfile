@@ -1,6 +1,12 @@
 {
     email {$EMAIL}
 
+	servers {
+		metrics {
+            per_host
+        }
+	}
+
     log default {
         output stdout
         format console
