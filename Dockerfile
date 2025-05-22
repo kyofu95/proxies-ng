@@ -9,7 +9,7 @@ ENV POETRY_HOME="/opt/poetry" \
     POETRY_VIRTUALENVS_IN_PROJECT=true \
     # do not ask any interactive question
     POETRY_NO_INTERACTION=1 \
-    POETRY_VERSION=2.1.0 \
+    POETRY_VERSION=2.1.3 \
     # paths
     # this is where our requirements + virtual environment will live
     PYSETUP_PATH="/opt/pysetup" \
