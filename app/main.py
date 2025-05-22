@@ -108,7 +108,7 @@ def create_app() -> FastAPI:
     )
 
     # setup metrics
-    Instrumentator().instrument(api).expose(api)
+    Instrumentator().instrument(api, metric_subsystem="fastapi").expose(api)
 
     return api
 
