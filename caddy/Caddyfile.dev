@@ -57,3 +57,16 @@ grafana.{$DOMAIN_NAME} {
 
     reverse_proxy grafana:3000
 }
+
+:9000 {
+    @external_network {
+        not {
+            remote_ip 10.10.0.0/16
+        }
+    }
+    handle @external_network {
+        respond 403 ""
+    }
+
+    metrics
+}
