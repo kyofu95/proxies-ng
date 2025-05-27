@@ -37,14 +37,14 @@ async def not_found_exception_handler(request: Request, _: HTTPException) -> JSO
     return templates.TemplateResponse("404.html", context=context, status_code=status.HTTP_404_NOT_FOUND)
 
 
-async def already_exists_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+async def already_exists_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
     """
     Handle AlreadyExistsError exceptions.
 
     Returns a 409 Conflict response with a descriptive message.
 
     Args:
-        request (Request): The incoming request object.
+        _ (Request): The incoming request object.
         exc (HTTPException): The AlreadyExistsError exception.
 
     Returns:
