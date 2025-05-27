@@ -10,6 +10,8 @@ from .utils.dependencies import ProxyServiceDep
 
 router = APIRouter(prefix="/proxy", tags=["Proxy"])
 
+proxy_response_adapter = TypeAdapter(list[ProxyResponse])
+
 
 @router.get("/", response_model_exclude_none=True, status_code=status.HTTP_200_OK)
 async def get_proxies(
@@ -39,7 +41,6 @@ async def get_proxies(
     Returns:
         PaginatedProxyResponse: A paginated response containing a list of proxies and metadata.
     """
-    type_adapter = TypeAdapter(list[ProxyResponse])
     proxies = await proxy_service.get_proxies(
         protocol=protocol,
         country_alpha2_code=country_code,
@@ -47,7 +48,7 @@ async def get_proxies(
         offset=offset,
         limit=limit,
     )
-    validated_proxies = type_adapter.validate_python(proxies)
+    validated_proxies = proxy_response_adapter.validate_python(proxies)
 
     total_count = await proxy_service.get_proxies_count(
         protocol=protocol,
