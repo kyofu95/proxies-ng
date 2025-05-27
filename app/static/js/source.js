@@ -58,7 +58,7 @@ function renderGrid() {
                 source.name,
                 source.uri,
                 source.uri_predefined_type,
-                source.health.total_conn_attemps + ' / ' + source.health.failed_conn_attemps,
+                source.health.total_conn_attempts + ' / ' + source.health.failed_conn_attempts,
                 timedeltaFormat(new Date() - new Date(source.health.last_used))
             ]),
         },

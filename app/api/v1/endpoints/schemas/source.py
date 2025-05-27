@@ -16,13 +16,13 @@ class SourceHealthResponse(BaseModel):
     Represents health metrics for a proxy source.
 
     Attributes:
-        total_conn_attemps (int): Total number of connection attempts to this source.
-        failed_conn_attemps (int): Number of failed connection attempts.
+        total_conn_attempts (int): Total number of connection attempts to this source.
+        failed_conn_attempts (int): Number of failed connection attempts.
         last_used (datetime | None): Timestamp of the last successful usage, if any.
     """
 
-    total_conn_attemps: int
-    failed_conn_attemps: int
+    total_conn_attempts: int
+    failed_conn_attempts: int
 
     last_used: datetime | None = Field(default=None)
 

@@ -53,8 +53,8 @@ class SourceService:
 
         source_health = SourceHealth()
         source_health.id = uuid4()
-        source_health.total_conn_attemps = 0
-        source_health.failed_conn_attemps = 0
+        source_health.total_conn_attempts = 0
+        source_health.failed_conn_attempts = 0
 
         source.health = source_health
 

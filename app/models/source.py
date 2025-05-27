@@ -43,8 +43,8 @@ class SourceHealth(Base):
         ),  # sqlalchemy recommends to use constraint on fk in one-to-one
     )
 
-    total_conn_attemps: Mapped[int]
-    failed_conn_attemps: Mapped[int]
+    total_conn_attempts: Mapped[int]
+    failed_conn_attempts: Mapped[int]
 
     last_used: Mapped[datetime | None] = mapped_column(SA_DateTime(timezone=True))
 

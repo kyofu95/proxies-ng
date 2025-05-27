@@ -161,10 +161,10 @@ async def fetch_all_proxy_lists(
     for source in sources:
         proxy_list_result = await download_proxy_list(source.uri, source.uri_predefined_type)
 
-        source.health.total_conn_attemps += 1
+        source.health.total_conn_attempts += 1
         source.health.last_used = datetime.datetime.now(tz=datetime.timezone.utc)
         if not proxy_list_result:
-            source.health.failed_conn_attemps += 1
+            source.health.failed_conn_attempts += 1
 
         await source_service.update(source)
 

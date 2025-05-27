@@ -134,15 +134,15 @@ async def test_fetch_all_proxy_lists_updates_source_health(mock_update, mock_dow
         id=1,
         uri="http://example.com",
         uri_predefined_type=Protocol.HTTP,
-        health=SourceHealth(id=222, total_conn_attemps=0, failed_conn_attemps=0, last_used=None),
+        health=SourceHealth(id=222, total_conn_attempts=0, failed_conn_attempts=0, last_used=None),
     )
 
     source_service = SourceService(uow=AsyncMock())
     proxies = await fetch_all_proxy_lists([source], source_service)
 
     assert proxies == [(IPv4Address("8.8.8.8"), 8080, Protocol.HTTP)]
-    assert source.health.total_conn_attemps == 1
-    assert source.health.failed_conn_attemps == 0
+    assert source.health.total_conn_attempts == 1
+    assert source.health.failed_conn_attempts == 0
     assert source.health.last_used is not None
     mock_update.assert_called_once_with(source)
 
@@ -158,15 +158,15 @@ async def test_fetch_all_proxy_lists_failed_download_increments_failure(mock_upd
         id=1,
         uri="http://example.com",
         uri_predefined_type=Protocol.HTTP,
-        health=SourceHealth(id=333, total_conn_attemps=0, failed_conn_attemps=0, last_used=None),
+        health=SourceHealth(id=333, total_conn_attempts=0, failed_conn_attempts=0, last_used=None),
     )
 
     source_service = SourceService(uow=AsyncMock())
     proxies = await fetch_all_proxy_lists([source], source_service)
 
     assert proxies == []
-    assert source.health.total_conn_attemps == 1
-    assert source.health.failed_conn_attemps == 1
+    assert source.health.total_conn_attempts == 1
+    assert source.health.failed_conn_attempts == 1
     assert source.health.last_used is not None
     mock_update.assert_called_once_with(source)
 
