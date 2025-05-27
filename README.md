@@ -1,3 +1,24 @@
+# proxies-ng
+**proxies-ng** is an open-source proxy aggregator that collects proxy lists from various public sources, verifies their availability, and makes them accessible via a web interface and a RESTful API.
+
+## Features
+
+- Aggregates proxies from multiple formats (e.g., JSON, TXT)
+- Validates proxy availability and geolocation
+- REST API for accessing proxy data
+- Built-in admin interface for management
+- Background tasks for periodic updates and validation
+- Dockerized for easy deployment
+
+## Technologies Used
+
+- **FastAPI** – high-performance web framework for API and backend
+- **PostgreSQL** – primary relational database
+- **Redis** – task queue and caching backend
+- **Celery** – background task processing
+- **Caddy** – reverse proxy with automatic HTTPS support
+- **Docker** – containerization and environment consistency
+
 ## Installation
 
 **Note**: This project requires [docker and docker compose plugin](https://www.docker.com/get-started/) to be installed on your system.
