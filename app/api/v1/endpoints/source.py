@@ -12,12 +12,12 @@ source_response_adapter = TypeAdapter(list[SourceResponse])
 
 
 @router.get("/all", status_code=status.HTTP_200_OK)
-async def get_all_sources(user: CurrentUserDep, source_service: SourceServiceDep) -> list[SourceResponse]:
+async def get_all_sources(_: CurrentUserDep, source_service: SourceServiceDep) -> list[SourceResponse]:
     """
     Get a list of all available sources.
 
     Args:
-        user (CurrentUserDep): The currently authenticated user.
+        _ (CurrentUserDep): The currently authenticated user.
         source_service (SourceServiceDep): Service for handling source-related operations.
 
     Returns:
@@ -29,13 +29,13 @@ async def get_all_sources(user: CurrentUserDep, source_service: SourceServiceDep
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def add_source(new_source: SourceRequest, user: CurrentUserDep, source_service: SourceServiceDep) -> JSONResponse:
+async def add_source(new_source: SourceRequest, _: CurrentUserDep, source_service: SourceServiceDep) -> JSONResponse:
     """
     Add a new source to the system.
 
     Args:
         new_source (SourceRequest): The source data to create.
-        user (CurrentUserDep): The currently authenticated user.
+        _ (CurrentUserDep): The currently authenticated user.
         source_service (SourceServiceDep): Service for handling source-related operations.
 
     Returns:
@@ -54,7 +54,7 @@ async def add_source(new_source: SourceRequest, user: CurrentUserDep, source_ser
 @router.delete("/", status_code=status.HTTP_202_ACCEPTED)
 async def remove_source(
     source: SourceNameRequest,
-    user: CurrentUserDep,
+    _: CurrentUserDep,
     source_service: SourceServiceDep,
 ) -> JSONResponse:
     """
@@ -62,7 +62,7 @@ async def remove_source(
 
     Args:
         source (SourceNameRequest): The name of the source to remove.
-        user (CurrentUserDep): The currently authenticated user.
+        _ (CurrentUserDep): The currently authenticated user.
         source_service (SourceServiceDep): Service for handling source-related operations.
 
     Returns:
