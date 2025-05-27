@@ -8,6 +8,8 @@ from .utils.token_auth import CurrentUserDep
 
 router = APIRouter(prefix="/source")
 
+source_response_adapter = TypeAdapter(list[SourceResponse])
+
 
 @router.get("/all", status_code=status.HTTP_200_OK)
 async def get_all_sources(user: CurrentUserDep, source_service: SourceServiceDep) -> list[SourceResponse]:
@@ -21,11 +23,9 @@ async def get_all_sources(user: CurrentUserDep, source_service: SourceServiceDep
     Returns:
         list[SourceResponse]: A list of all sources in the system.
     """
-    type_adapter = TypeAdapter(list[SourceResponse])
-
     sources = await source_service.get_sources()
 
-    return type_adapter.validate_python(sources)
+    return source_response_adapter.validate_python(sources)
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
