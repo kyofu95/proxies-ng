@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from asgi_correlation_id import CorrelationIdFilter, CorrelationIdMiddleware, correlation_id
+from asgi_correlation_id import CorrelationIdFilter, CorrelationIdMiddleware
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
