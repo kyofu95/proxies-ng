@@ -53,8 +53,8 @@ class ProxyAddress(Base):
     Represents the geographical address associated with a proxy.
 
     Attributes:
-        country_code (UUID): Foreign key to countries.id.
-        country (Country): Relationship to the Country model..
+        country_id (UUID): Foreign key to countries.id.
+        country (Country): Relationship to the Country model.
         region (str): Region or state of the proxy's location.
         city (str): City of the proxy's location.
     """
