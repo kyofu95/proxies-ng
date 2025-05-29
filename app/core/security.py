@@ -89,9 +89,10 @@ class JWT:
         """
         delta = timedelta(minutes=jwt_settings.access_token_expiry)
 
+        utc_now = datetime.now(timezone.utc)
         payload = {
-            "exp": datetime.now(timezone.utc) + delta,
-            "iat": datetime.now(timezone.utc),
+            "exp": utc_now + delta,
+            "iat": utc_now,
             "sub": str(user_id),
         }
 
