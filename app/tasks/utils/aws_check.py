@@ -1,9 +1,12 @@
 import asyncio
+import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address
 
 from app.models.proxy import Protocol
 
 from .network_request import HTTP_STATUS_OK, ProxyHttpResult, try_http_request_with_proxy
+
+logger = logging.getLogger(__name__)
 
 
 def format_proxy_url(
@@ -50,11 +53,18 @@ def validate_aws_response(address: IPv4Address | IPv6Address, response: ProxyHtt
     """
     if response.status != HTTP_STATUS_OK:
         return False
+
     try:
         remote_address = ip_address(response.text.strip("\r\n"))
     except ValueError:
+        logger.debug("Invalid IP format in AWS response: %r", response.text)
         return False
-    return address == remote_address
+
+    if address != remote_address:
+        logger.debug("AWS IP mismatch: expected %s, got %s", address, remote_address)
+        return False
+
+    return True
 
 
 async def try_aws_http_request_with_proxy(
