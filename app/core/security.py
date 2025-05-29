@@ -10,8 +10,6 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, PyJWTError
 from .config import jwt_settings
 from .exceptions import HashingError, TokenError
 
-hasher = Argon2Hasher()
-
 
 class PasswordHasher:
     """
@@ -20,6 +18,8 @@ class PasswordHasher:
     This class wraps the `argon2.PasswordHasher` to provide password hashing
     and verification functionality with proper exception handling.
     """
+
+    _hasher = Argon2Hasher()
 
     @staticmethod
     def hash(password: str) -> str:
@@ -36,7 +36,7 @@ class PasswordHasher:
             str: The hashed password.
         """
         try:
-            return hasher.hash(password)
+            return PasswordHasher._hasher.hash(password)
         except Argon2Error as exc:
             raise HashingError("Failed to hash password") from exc
 
@@ -56,7 +56,7 @@ class PasswordHasher:
             bool: True if the password matches, False if it does not.
         """
         try:
-            return hasher.verify(hash=hashed_password, password=plaintext_password)
+            return PasswordHasher._hasher.verify(hash=hashed_password, password=plaintext_password)
         except VerifyMismatchError:
             return False
         except (Argon2Error, InvalidHashError) as exc:
