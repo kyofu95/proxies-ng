@@ -125,7 +125,7 @@ async def try_http_request_with_proxy(
     ):
         pass
     except Exception:  # noqa: BLE001
-        logger.debug("Proxy check failed with exception", exc_info=True)
+        logger.debug("Proxy check failed for %s", proxy_url, exc_info=True)
 
     await graceful_shutdown(protocol)
     return None
