@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from collections.abc import Callable, Coroutine
 from typing import Any
 
@@ -10,6 +11,8 @@ from app.core.config import celery_settings, redis_settings
 
 from .check_proxies import check_proxies
 from .fetch_proxies import fetch_proxies
+
+logger = logging.getLogger(__name__)
 
 
 def format_broker_url() -> str:
@@ -75,14 +78,20 @@ async def async_task_runner(func: Coro) -> None:
     redis = get_redis()
     if not await redis.set(redis_key, task_id, ex=300, nx=True):
         # task already running
+        logger.info("Task %s skipped: already running.", func.__name__)
         return
 
     try:
+        logger.info("Task %s started with id %s.", func.__name__, task_id)
         await func()
+    except Exception:
+        logger.exception("Task %s failed", func.__name__)
+        raise
     finally:
         current_value = await redis.get(redis_key)
         if current_value == task_id:
             await redis.delete(redis_key)
+            logger.info("Task %s finished and lock released.", func.__name__)
 
 
 @celery_app.task
