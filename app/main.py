@@ -3,6 +3,7 @@ import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
+from uuid import uuid4
 
 from asgi_correlation_id import CorrelationIdFilter, CorrelationIdMiddleware
 from fastapi import FastAPI
@@ -96,7 +97,10 @@ def create_app() -> FastAPI:
     install_exception_handlers(api)
 
     # setup correlation id
-    api.add_middleware(CorrelationIdMiddleware)
+    api.add_middleware(
+        CorrelationIdMiddleware,
+        generator=lambda: str(uuid4()),  # UID4 with five groups separated by hyphens
+    )
 
     api.add_middleware(
         CORSMiddleware,
