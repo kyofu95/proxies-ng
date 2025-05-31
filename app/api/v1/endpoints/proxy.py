@@ -21,8 +21,8 @@ async def get_proxies(
         Query(..., description="2-letter country code", min_length=2, max_length=2),
     ] = None,
     protocol: Annotated[Protocol | None, Query(...)] = None,
-    offset: int | None = None,
-    limit: int = 100,
+    offset: Annotated[int | None, Query(ge=0)] = None,
+    limit: Annotated[int, Query(ge=1, le=1000)] = 100,
 ) -> PaginatedProxyResponse:
     """
     Retrieve a paginated list of available proxies.
