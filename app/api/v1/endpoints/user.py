@@ -1,6 +1,6 @@
-from fastapi import APIRouter, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Response, status
 
+from .schemas.status import StatusMessageResponse
 from .schemas.user import UserPasswordRequest
 from .utils.dependencies import UserServiceDep
 from .utils.token_auth import CurrentUserDep
@@ -10,10 +10,11 @@ router = APIRouter(prefix="/user")
 
 @router.post("/change_password", status_code=status.HTTP_202_ACCEPTED)
 async def change_password(
+    response: Response,
     password_schema: UserPasswordRequest,
     current_user: CurrentUserDep,
     user_service: UserServiceDep,
-) -> JSONResponse:
+) -> StatusMessageResponse:
     """
     Change the password for the currently authenticated user.
 
@@ -23,28 +24,26 @@ async def change_password(
     to force re-authentication.
 
     Args:
+        response (Response): The HTTP response object used to delete the access token cookie.
         password_schema (UserPasswordRequest): Schema containing the old and new passwords.
-        current_user (CurrentUserDep): Dependency that provides the currently authenticated user.
-        user_service (UserServiceDep): Dependency that provides access to user-related operations.
+        current_user (CurrentUserDep): The currently authenticated user.
+        user_service (UserServiceDep): Service responsible for user management.
+
+    Raises:
+        HTTPException: If the old password is invalid (401 Unauthorized).
 
     Returns:
-        JSONResponse: A JSON response indicating the result of the operation.
-            - 202 Accepted on success.
-            - 401 Unauthorized if the old password is invalid.
+        StatusMessageResponse: A message indicating successful password change.
     """
     # validate old password
     user = await user_service.get_by_login_with_auth(current_user.login, password_schema.old_password)
     if not user:
-        content = {"detail": "invalid login or password."}
-        return JSONResponse(content=content, status_code=status.HTTP_401_UNAUTHORIZED)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid login or password")
 
     # change password
     await user_service.change_password(user, password_schema.new_password)
 
-    content = {"detail": "password changed successfully"}
-    response = JSONResponse(content=content, status_code=status.HTTP_202_ACCEPTED)
-
     # user auth changed, kick them out
     response.delete_cookie("access_token")
 
-    return response
+    return StatusMessageResponse(detail="password changed successfully")
