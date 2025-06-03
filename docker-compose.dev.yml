@@ -42,7 +42,7 @@ services:
       - backend
 
   postgres:
-    image: postgres:17.4
+    image: postgres:17.5
     container_name: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
