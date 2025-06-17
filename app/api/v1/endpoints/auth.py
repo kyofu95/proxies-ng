@@ -1,11 +1,11 @@
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from app.core.security import JWT
 
 from .schemas.login import LoginRequest
 from .schemas.status import StatusMessageResponse
 from .utils.dependencies import UserServiceDep
-from .utils.token_auth import CurrentUserDep
+from .utils.token_auth import get_current_user_from_cookie
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -43,14 +43,16 @@ async def login(response: Response, user_data: LoginRequest, service: UserServic
     return StatusMessageResponse(detail="logged in")
 
 
-@router.post("/logout", status_code=status.HTTP_200_OK)
-async def logout(response: Response, _: CurrentUserDep) -> StatusMessageResponse:
+@router.post("/logout", status_code=status.HTTP_200_OK, dependencies=[Depends(get_current_user_from_cookie)])
+async def logout(response: Response) -> StatusMessageResponse:
     """
     Log the user out by deleting the cookie with token cookie.
 
+    This endpoint requires the user to be authenticated. The dependency 'get_current_user_from_cookie'
+    ensures that the request includes a valid access token.
+
     Args:
         response (Response): The HTTP response object used to clear the cookie.
-        _ (CurrentUserDep): Dependency-injected current user (used to enforce authentication).
 
     Returns:
         StatusMessageResponse: A response containing a message indicating that the user has logged out.

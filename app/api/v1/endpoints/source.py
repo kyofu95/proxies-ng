@@ -1,23 +1,25 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import TypeAdapter
 
 from .schemas.source import SourceNameRequest, SourceRequest, SourceResponse
 from .schemas.status import StatusMessageResponse
 from .utils.dependencies import SourceServiceDep
-from .utils.token_auth import CurrentUserDep
+from .utils.token_auth import get_current_user_from_cookie
 
 router = APIRouter(prefix="/source")
 
 source_response_adapter = TypeAdapter(list[SourceResponse])
 
 
-@router.get("/all", status_code=status.HTTP_200_OK)
-async def get_all_sources(_: CurrentUserDep, source_service: SourceServiceDep) -> list[SourceResponse]:
+@router.get("/all", status_code=status.HTTP_200_OK, dependencies=[Depends(get_current_user_from_cookie)])
+async def get_all_sources(source_service: SourceServiceDep) -> list[SourceResponse]:
     """
     Get a list of all available sources.
 
+    This endpoint requires the user to be authenticated. The dependency 'get_current_user_from_cookie'
+    ensures that the request includes a valid access token.
+
     Args:
-        _ (CurrentUserDep): The currently authenticated user.
         source_service (SourceServiceDep): Service for handling source-related operations.
 
     Returns:
@@ -28,18 +30,19 @@ async def get_all_sources(_: CurrentUserDep, source_service: SourceServiceDep) -
     return source_response_adapter.validate_python(sources)
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[Depends(get_current_user_from_cookie)])
 async def add_source(
     new_source: SourceRequest,
-    _: CurrentUserDep,
     source_service: SourceServiceDep,
 ) -> StatusMessageResponse:
     """
     Add a new source to the system.
 
+    This endpoint requires the user to be authenticated. The dependency 'get_current_user_from_cookie'
+    ensures that the request includes a valid access token.
+
     Args:
         new_source (SourceRequest): The source data to create.
-        _ (CurrentUserDep): The currently authenticated user.
         source_service (SourceServiceDep): Service for handling source-related operations.
 
     Returns:
@@ -54,18 +57,19 @@ async def add_source(
     return StatusMessageResponse(detail="created successfully")
 
 
-@router.delete("/", status_code=status.HTTP_202_ACCEPTED)
+@router.delete("/", status_code=status.HTTP_202_ACCEPTED, dependencies=[Depends(get_current_user_from_cookie)])
 async def remove_source(
     source: SourceNameRequest,
-    _: CurrentUserDep,
     source_service: SourceServiceDep,
 ) -> StatusMessageResponse:
     """
     Remove an existing source by its name.
 
+    This endpoint requires the user to be authenticated. The dependency 'get_current_user_from_cookie'
+    ensures that the request includes a valid access token.
+
     Args:
         source (SourceNameRequest): The name of the source to remove.
-        _ (CurrentUserDep): The currently authenticated user.
         source_service (SourceServiceDep): Service for handling source-related operations.
 
     Raises:
