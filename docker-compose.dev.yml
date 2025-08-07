@@ -59,7 +59,7 @@ services:
       - backend
 
   redis:
-    image: redis:7.4
+    image: redis:8.2.0
     container_name: redis
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
